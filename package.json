@@ -1,0 +1,14 @@
+{
+  "name": "__PACKAGE__",
+  "version": "0.1.0-alpha.1",
+  "displayName": "__DISPLAY__",
+  "description": "__DESCRIPTION__",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.unity.mathematics": "1.2.6"
+  },
+  "keywords": [],
+  "author": {
+    "name": "__AUTHOR__"
+  }
+}

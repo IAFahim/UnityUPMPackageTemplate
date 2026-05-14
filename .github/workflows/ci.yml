@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+
+      - name: Restore
+        run: dotnet restore *.slnx
+
+      - name: Build
+        run: dotnet build *.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test *.slnx -c Release --no-build
+
+      - name: Verify no Unity.Mathematics DLL in output
+        run: |
+          if find src -name "Unity.Mathematics*" -type f 2>/dev/null | grep -q .; then
+            echo "FAIL: Unity.Mathematics DLL leaked into output!"
+            find src -name "Unity.Mathematics*" -type f
+            exit 1
+          fi
+          echo "OK: No Unity.Mathematics DLL in output."

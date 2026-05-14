@@ -1,0 +1,23 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <AnalysisLevel>latest</AnalysisLevel>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!--
+    Unity.Mathematics from NuGet for CI compilation.
+    PrivateAssets="All" = compile only, never copied to output, never flows to consumers.
+    Inside Unity, com.unity.mathematics UPM package provides the real assembly.
+    The compiled IL references "Unity.Mathematics" by assembly name — same identity.
+  -->
+  <ItemGroup>
+    <PackageReference Include="UnityMathematics" Version="1.3.2" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>__PACKAGE__</AssemblyName>
+    <RootNamespace>__NAMESPACE__</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- Source lives in the Unity package Runtime/ folder. This csproj just points at it. -->
+  <ItemGroup>
+    <Compile Include="../../__PACKAGE__.Runtime/*.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,21 @@
+{
+    "name": "__PACKAGE__.Tests",
+    "rootNamespace": "__NAMESPACE__.Tests",
+    "references": [
+        "__PACKAGE__.Runtime",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
