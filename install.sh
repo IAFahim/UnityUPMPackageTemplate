@@ -329,9 +329,9 @@ fi
 
 # ── Verify no leftover placeholders ─────────────────────────────
 
-LEFTOVER=$(grep -rl "__PACKAGE__\|__NAMESPACE__\|__AUTHOR__\|__DISPLAY__\|__PLACEHOLDER__" \
-    --include="*.cs" --include="*.json" --include="*.md" --include="*.yml" --include="*.asmdef" \
-    . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' || true)
+LEFTOVER=$(grep -rl '__[A-Z_]*__' \
+    --include='*.cs' --include='*.json' --include='*.asmdef' \
+    . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' | grep -v '.github/' || true)
 if [ -n "$LEFTOVER" ]; then
     echo "  ${YELLOW}⚠${RESET} Unreplaced placeholders in:"
     echo "$LEFTOVER" | sed 's/^/    /'

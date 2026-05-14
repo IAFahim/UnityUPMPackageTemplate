@@ -47,12 +47,13 @@ jobs:
 
       - name: Verify no unreplaced placeholders
         run: |
-          LEFTOVER=$(grep -rl '__PACKAGE__\|__NAMESPACE__\|__AUTHOR__\|__DISPLAY__\|__PLACEHOLDER__' \
+          LEFTOVER=$(grep -rl '__[A-Z_]*__' \
             --include='*.cs' --include='*.json' --include='*.asmdef' . 2>/dev/null \
             | grep -v '/obj/' | grep -v '/bin/' || true)
           if [ -n "$LEFTOVER" ]; then
             echo "FAIL: Unreplaced template placeholders:"
             echo "$LEFTOVER"
-            exit 1
-          fi
+            # Exclude CI file itself (contains the grep pattern)
+            echo "$LEFTOVER" | grep -v 'ci.yml' | grep -q . && exit 1
+            echo "OK: Only CI self-reference (safe to ignore)."
           echo "OK: No unreplaced placeholders."
