@@ -7,6 +7,7 @@ PASS=0 FAIL=0
 
 ok()   { ((PASS++)); echo "  ${GREEN}✓${RESET} $1"; }
 fail() { ((FAIL++)); echo "  ${RED}✗${RESET} $1"; }
+warn() { echo "  ${YELLOW}⚠${RESET} $1"; }
 
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -77,8 +78,10 @@ DLLS=$(find . -path '*/bin' -prune -o -path '*/obj' -prune -o -path './.git' -pr
 [ -z "$DLLS" ] && ok "No DLLs in package" || fail "DLLs found: $DLLS"
 
 # No bin/obj/artifacts tracked by git
-TRACKED_BUILD=$(git ls-files bin/ obj/ artifacts/ 2>/dev/null || true)
-[ -z "$TRACKED_BUILD" ] && ok "No build outputs tracked by git" || fail "Build outputs tracked: $TRACKED_BUILD"
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    TRACKED_BUILD=$(git ls-files bin/ obj/ artifacts/ 2>/dev/null || true)
+    [ -z "$TRACKED_BUILD" ] && ok "No build outputs tracked by git" || fail "Build outputs tracked: $TRACKED_BUILD"
+fi
 
 # No placeholders
 LEFTOVER=$(grep -rl '__[A-Z_]*__' \
