@@ -47,6 +47,11 @@ jobs:
 
       - name: Verify no unreplaced placeholders
         run: |
+          # Skip if this is the raw template (placeholders are expected)
+          if ls __PACKAGE__.Runtime/__PLACEHOLDER__.cs 2>/dev/null | grep -q .; then
+            echo "SKIP: Template repo — placeholders are intentional."
+            exit 0
+          fi
           LEFTOVER=$(grep -rl '__[A-Z_]*__' \
             --include='*.cs' --include='*.json' --include='*.asmdef' . 2>/dev/null \
             | grep -v '/obj/' | grep -v '/bin/' || true)
