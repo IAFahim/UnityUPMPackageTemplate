@@ -141,7 +141,7 @@ done
 
 chmod +x scripts/smoke.sh
 rm -f AGENTS.md CHANGELOG.md install.sh
-rm -rf .github
+# Keep .github/ — CI is essential
 rm -- "$0"
 
 # Clean README

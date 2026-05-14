@@ -262,7 +262,7 @@ done
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
 rm -f setup.sh install.sh AGENTS.md CHANGELOG.md
-rm -rf .github
+# Keep .github/ — CI is essential, not a template artifact
 chmod +x scripts/smoke.sh
 
 # Write a clean README — no template fingerprints
