@@ -1,69 +1,42 @@
-# Unity UPM Package Template
+# __DISPLAY__
 
-Create Unity packages that feel like normal .NET projects.
+> __DESCRIPTION__
 
-**One command. Done.**
-
-```bash
-bash <(curl -sL https://raw.githubusercontent.com/IAFahim/UnityUPMPackageTemplate/main/install.sh)
-```
-
-Or clone and run locally:
+**Build outside Unity. Ship as Unity package.**
 
 ```bash
-git clone https://github.com/IAFahim/UnityUPMPackageTemplate.git my-package
-cd my-package
-./setup.sh
-```
-
-## What it creates
-
-```
-my-package/
-├── com.company.packagename.Runtime/   ← Your code lives here
-│   ├── Template.cs                     ← Replace with your types
-│   └── *.Runtime.asmdef
-├── com.company.packagename.Tests/     ← Tests (CI + Unity)
-│   └── Template.Tests.cs
-├── src/                                ← dotnet project (points at Runtime/)
-├── tests/                              ← dotnet test project (points at Tests/)
-├── benchmarks/                         ← BenchmarkDotNet
-├── package.json                        ← UPM manifest
-└── *.slnx                              ← Solution file
-```
-
-## Daily workflow
-
-```bash
-vim com.company.packagename.Runtime/MyType.cs
 dotnet test -c Release
 git push
 ```
 
-Unity installs via git URL. No DLLs. No adapters. Source is the package.
+## Installation
 
-## How the trick works
+Add to your Unity project's `Packages/manifest.json`:
 
-```
-Directory.Build.props:
-  UnityMathematics NuGet → PrivateAssets="All" → compile only, never shipped
-
-CI:
-  dotnet builds Runtime/*.cs → IL references "Unity.Mathematics" by name
-  Tests use UnityMathematics.NoDeps → no UnityEngine needed
-
-Unity:
-  package.json → "com.unity.mathematics": "1.2.6"
-  asmdef → references Unity.Mathematics
-  Same assembly name → no duplicate, Burst works
+```json
+{
+  "dependencies": {
+    "__PACKAGE__": "https://github.com/__AUTHOR__/__PACKAGE__.git"
+  }
+}
 ```
 
-## Features
+Or Unity Editor → Package Manager → Add package from git URL.
 
-| Feature | Command |
-|---|---|
-| Build | `dotnet build -c Release` |
-| Test | `dotnet test -c Release` |
-| Benchmark | `dotnet run -c Release --project benchmarks/` |
-| CI | Push to GitHub — Actions runs automatically |
-| Unity install | Package Manager → git URL |
+## Requirements
+
+- .NET 8 SDK (for development)
+- Unity 2022.3+ (for runtime)
+
+## Development
+
+```bash
+dotnet restore
+dotnet test -c Release
+```
+
+Source lives in `__PACKAGE__.Runtime/`. Tests in `__PACKAGE__.Tests/`.
+
+## License
+
+MIT © __AUTHOR__

@@ -97,6 +97,43 @@ rm -f CHANGELOG.md
 rm -rf .github
 rm -- "$0"
 
+# Write a clean README
+cat > README.md <<README
+# $DISPLAY_NAME
+
+> $DISPLAY_NAME
+
+Build outside Unity. Ship as Unity package.
+
+\`\`\`bash
+dotnet test -c Release
+git push
+\`\`\`
+
+## Installation
+
+Add to your Unity project's \`Packages/manifest.json\`:
+
+\`\`\`json
+{
+  "dependencies": {
+    "$PACKAGE_ID": "https://github.com/$AUTHOR/$PACKAGE_ID.git"
+  }
+}
+\`\`\`
+
+Or Unity Editor → Package Manager → Add package from git URL.
+
+## Requirements
+
+- .NET 8 SDK (for development)
+- Unity 2022.3+ (for runtime)
+
+## License
+
+MIT © $YEAR $AUTHOR
+README
+
 echo ""
 echo "  Done."
 echo ""
