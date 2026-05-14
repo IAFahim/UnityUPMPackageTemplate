@@ -53,7 +53,6 @@ jobs:
           if [ -n "$LEFTOVER" ]; then
             echo "FAIL: Unreplaced template placeholders:"
             echo "$LEFTOVER"
-            # Exclude CI file itself (contains the grep pattern)
-            echo "$LEFTOVER" | grep -v 'ci.yml' | grep -q . && exit 1
-            echo "OK: Only CI self-reference (safe to ignore)."
+            exit 1
+          fi
           echo "OK: No unreplaced placeholders."
