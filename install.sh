@@ -113,10 +113,10 @@ DEFAULT_GH_OWNER=$(detect_github_owner)
 
 if [ -z "$FOLDER_NAME" ]; then
     FOLDER_NAME=$(basename "$(pwd)")
-    # If we're in $HOME, don't use that
-    if [ "$FOLDER_NAME" = "$HOME" ] || [ "$FOLDER_NAME" = "$(basename "$HOME")" ]; then
-        FOLDER_NAME=""
-    fi
+    # Skip obvious non-project dirs
+    case "$FOLDER_NAME" in
+        tmp|home|root|usr|var|etc|Users|Documents|Desktop|Downloads|"$HOME") FOLDER_NAME="" ;;
+    esac
     if [ -n "$FOLDER_NAME" ]; then
         read -rp "  ${BOLD}Folder name${RESET} [$FOLDER_NAME]: " INPUT
         FOLDER_NAME="${INPUT:-$FOLDER_NAME}"
