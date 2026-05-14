@@ -14,7 +14,7 @@ set -euo pipefail
 TEMPLATE_REPO="https://github.com/IAFahim/UnityUPMPackageTemplate.git"
 FOLDER_NAME="${1:-}"
 
-BOLD=$'\033[1m' DIM=$'\033[2m' GREEN=$'\033[32m' CYAN=$'\033[36m' YELLOW=$'\033[33m' RESET=$'\033[0m'
+BOLD=$'\033[1m' DIM=$'\033[2m' GREEN=$'\033[32m' CYAN=$'\033[36m' YELLOW=$'\033[33m' RED=$'\033[31m' RESET=$'\033[0m'
 
 # ── Helpers ─────────────────────────────────────────────────────
 
@@ -46,28 +46,21 @@ validate_package_id() {
 }
 
 # Detect installed Unity versions, return highest
+escape_sed() {
+    printf '%s' "$1" | sed -e 's/[\\/&]/\\&/g'
+}
+
 detect_unity_min() {
-    local hub="/home/l/Unity/Hub/Editor"
-    if [ -d "$hub" ]; then
-        local best=""
-        for d in "$hub"/*/; do
-            local v=$(basename "$d")
-            # Extract major.minor (e.g. 6000.6 → "6000.6", or 2022.3)
-            if [[ "$v" =~ ^([0-9]+\.[0-9]+) ]]; then
-                best="$v"
-            fi
-        done
-        if [ -n "$best" ]; then
-            # Convert Unity version to human-readable: 2022.3 → 2022.3, 6000.x → 6.x
-            if [[ "$best" =~ ^6000\.([0-9]+) ]]; then
-                echo "6000.${BASH_REMATCH[1]}"
-            elif [[ "$best" =~ ^([0-9]+\.[0-9]+) ]]; then
-                echo "${BASH_REMATCH[1]}"
-            fi
+    local hub="$HOME/Unity/Hub/Editor"
+    [ -d "$hub" ] || { echo "2022.3"; return; }
+    for d in "$hub"/*/; do
+        local v
+        v=$(basename "$d")
+        if [[ "$v" =~ ^([0-9]+\.[0-9]+) ]]; then
+            echo "${BASH_REMATCH[1]}"
             return
         fi
-    fi
-    # Default
+    done
     echo "2022.3"
 }
 
@@ -191,6 +184,22 @@ fi
 
 YEAR=$(date +%Y)
 
+# Unity minimum — auto-detected
+if [ -n "$DEFAULT_UNITY" ]; then
+    read -rp "  ${BOLD}Unity minimum${RESET} [$DEFAULT_UNITY]: " UNITY_MIN
+    UNITY_MIN="${UNITY_MIN:-$DEFAULT_UNITY}"
+else
+    UNITY_MIN="2022.3"
+fi
+
+# Escape all values for safe sed replacement
+S_PACKAGE=$(escape_sed "$PACKAGE_ID")
+S_NAMESPACE=$(escape_sed "$NAMESPACE")
+S_DISPLAY=$(escape_sed "$DISPLAY_NAME")
+S_AUTHOR=$(escape_sed "$AUTHOR")
+S_YEAR=$(escape_sed "$YEAR")
+S_UNITY=$(escape_sed "$UNITY_MIN")
+
 echo ""
 echo "  ${DIM}──────────────────────────────────────────────────────${RESET}"
 echo "  ${BOLD}Package:${RESET}    $PACKAGE_ID"
@@ -198,6 +207,7 @@ echo "  ${BOLD}Display:${RESET}     $DISPLAY_NAME"
 echo "  ${BOLD}Author:${RESET}      $AUTHOR"
 echo "  ${BOLD}Namespace:${RESET}   $NAMESPACE"
 echo "  ${BOLD}GitHub:${RESET}      $GH_OWNER"
+echo "  ${BOLD}Unity:${RESET}       $UNITY_MIN+"
 echo "  ${BOLD}Folder:${RESET}      $FOLDER_NAME"
 echo "  ${DIM}──────────────────────────────────────────────────────${RESET}"
 echo ""
@@ -241,12 +251,13 @@ find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*
     -o -name "LICENSE" \) \
     -not -path "*/bin/*" -not -path "*/obj/*" -not -path "*/.git/*" \
     -exec sed -i \
-    -e "s/__PACKAGE__/$PACKAGE_ID/g" \
-    -e "s/__NAMESPACE__/$NAMESPACE/g" \
-    -e "s/__DISPLAY__/$DISPLAY_NAME/g" \
-    -e "s/__DESCRIPTION__/$DISPLAY_NAME/g" \
-    -e "s/__AUTHOR__/$AUTHOR/g" \
-    -e "s/__YEAR__/$YEAR/g" \
+    -e "s/__PACKAGE__/$S_PACKAGE/g" \
+    -e "s/__NAMESPACE__/$S_NAMESPACE/g" \
+    -e "s/__DISPLAY__/$S_DISPLAY/g" \
+    -e "s/__DESCRIPTION__/$S_DISPLAY/g" \
+    -e "s/__AUTHOR__/$S_AUTHOR/g" \
+    -e "s/__YEAR__/$S_YEAR/g" \
+    -e "s/__UNITY_MIN__/$S_UNITY/g" \
     {} +
 
 # ── Clean placeholder source files ──────────────────────────────
@@ -262,8 +273,18 @@ done
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
 rm -f setup.sh install.sh AGENTS.md CHANGELOG.md
-# Keep .github/ — CI is essential, not a template artifact
 chmod +x scripts/smoke.sh
+
+# Rewrite CI — strip the template-only skip check so generated CI is clean
+if command -v python3 >/dev/null 2>&1; then
+    python3 -c "
+import re, sys
+with open('.github/workflows/ci.yml') as f: c = f.read()
+# Remove the 'if ls __PACKAGE__...' skip block
+c = re.sub(r'          if ls __PACKAGE__[^}]+\}\n', '', c, flags=re.DOTALL)
+with open('.github/workflows/ci.yml', 'w') as f: f.write(c)
+" 2>/dev/null || true
+fi
 
 # Write a clean README — no template fingerprints
 BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"
@@ -318,13 +339,9 @@ if ! dotnet build "$PACKAGE_ID.slnx" -c Release --no-restore >/dev/null 2>&1; th
 fi
 
 echo "  ${GREEN}►${RESET} Testing..."
-TEST_OUT=$(dotnet test "$PACKAGE_ID.slnx" -c Release --no-build 2>&1) || true
-if echo "$TEST_OUT" | grep -q "Passed!"; then
-    PASSED=$(echo "$TEST_OUT" | grep -oP 'Passed:\s*\K\d+')
-    echo "  ${GREEN}✓${RESET} ${BOLD}${PASSED:-0} tests pass${RESET}"
-else
-    echo "$TEST_OUT" | tail -5
-    echo "  ${YELLOW}⚠${RESET} Tests failed."
+if ! dotnet test "$PACKAGE_ID.slnx" -c Release --no-build 2>&1; then
+    echo "  ${RED}✗${RESET} Tests failed. Aborting."
+    exit 1
 fi
 
 # ── Verify no leftover placeholders ─────────────────────────────
@@ -333,8 +350,9 @@ LEFTOVER=$(grep -rl '__[A-Z_]*__' \
     --include='*.cs' --include='*.json' --include='*.asmdef' \
     . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' | grep -v '.github/' || true)
 if [ -n "$LEFTOVER" ]; then
-    echo "  ${YELLOW}⚠${RESET} Unreplaced placeholders in:"
+    echo "  ${RED}✗${RESET} Unreplaced placeholders in:"
     echo "$LEFTOVER" | sed 's/^/    /'
+    exit 1
 fi
 
 # ── Git init ────────────────────────────────────────────────────

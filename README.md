@@ -76,10 +76,11 @@ Unity:
 
 ## What's erased on install
 
-After `setup.sh` or `install.sh` runs, **zero traces** remain:
+After `setup.sh` or `install.sh` runs, **zero template traces** remain:
 - ❌ No `setup.sh`, `install.sh`, `AGENTS.md`, `CHANGELOG.md`
-- ❌ No `.github/` (CI is regenerated clean)
+- ❌ No template skip-check in CI
 - ❌ No template references in README
+- ✅ CI workflow kept (essential, cleaned of template fingerprints)
 - ✅ Clean `init` commit
 - ✅ Build passes, tests pass
 

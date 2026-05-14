@@ -25,6 +25,10 @@ validate_package_id() {
     [[ "$1" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9_-]*){2,}$ ]]
 }
 
+escape_sed() {
+    printf '%s' "$1" | sed -e 's/[\\/&]/\\&/g'
+}
+
 detect_author()   { git config --global user.name 2>/dev/null || gh api user -q .login 2>/dev/null || echo ""; }
 detect_gh_owner() { gh api user -q .login 2>/dev/null || echo ""; }
 
@@ -95,6 +99,23 @@ fi
 
 YEAR=$(date +%Y)
 GH_OWNER="${DEFAULT_GH:-$AUTHOR}"
+UNITY_MIN="2022.3"
+
+# Detect Unity
+if [ -d "$HOME/Unity/Hub/Editor" ]; then
+    for d in "$HOME/Unity/Hub/Editor"/*/; do
+        v=$(basename "$d")
+        [[ "$v" =~ ^([0-9]+\.[0-9]+) ]] && UNITY_MIN="${BASH_REMATCH[1]}" && break
+    done
+fi
+
+# Escape for sed
+S_PACKAGE=$(escape_sed "$PACKAGE_ID")
+S_NAMESPACE=$(escape_sed "$NAMESPACE")
+S_DISPLAY=$(escape_sed "$DISPLAY_NAME")
+S_AUTHOR=$(escape_sed "$AUTHOR")
+S_YEAR=$(escape_sed "$YEAR")
+S_UNITY=$(escape_sed "$UNITY_MIN")
 echo ""
 
 # ── Rename folders ──────────────────────────────────────────────
@@ -122,12 +143,13 @@ find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*
     -o -name "LICENSE" \) \
     -not -path "*/bin/*" -not -path "*/obj/*" -not -path "*/.git/*" \
     -exec sed -i \
-    -e "s/__PACKAGE__/$PACKAGE_ID/g" \
-    -e "s/__NAMESPACE__/$NAMESPACE/g" \
-    -e "s/__DISPLAY__/$DISPLAY_NAME/g" \
-    -e "s/__DESCRIPTION__/$DISPLAY_NAME/g" \
-    -e "s/__AUTHOR__/$AUTHOR/g" \
-    -e "s/__YEAR__/$YEAR/g" \
+    -e "s/__PACKAGE__/$S_PACKAGE/g" \
+    -e "s/__NAMESPACE__/$S_NAMESPACE/g" \
+    -e "s/__DISPLAY__/$S_DISPLAY/g" \
+    -e "s/__DESCRIPTION__/$S_DISPLAY/g" \
+    -e "s/__AUTHOR__/$S_AUTHOR/g" \
+    -e "s/__YEAR__/$S_YEAR/g" \
+    -e "s/__UNITY_MIN__/$S_UNITY/g" \
     {} +
 
 # ── Clean placeholders ──────────────────────────────────────────
