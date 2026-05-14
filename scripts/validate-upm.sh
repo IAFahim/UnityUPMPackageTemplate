@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# ── Validate UPM package structure ──────────────────────────────
+set -uo pipefail
+
+BOLD=$'\033[1m' GREEN=$'\033[32m' RED=$'\033[31m' YELLOW=$'\033[33m' RESET=$'\033[0m'
+PASS=0 FAIL=0
+
+ok()   { ((PASS++)); echo "  ${GREEN}✓${RESET} $1"; }
+fail() { ((FAIL++)); echo "  ${RED}✗${RESET} $1"; }
+
+cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+
+echo ""
+echo "  ${BOLD}Validating UPM package...${RESET}"
+echo ""
+
+# ── Required files ──────────────────────────────────────────────
+
+for f in package.json README.md LICENSE; do
+    [ -f "$f" ] && ok "$f exists" || fail "$f missing"
+done
+
+# ── package.json fields ─────────────────────────────────────────
+
+if [ -f "package.json" ]; then
+    validate_field() {
+        local val=$(python3 -c "import json; print(json.load(open('package.json')).get('$1',''))" 2>/dev/null || echo "")
+        [ -n "$val" ] && ok "package.json has $1" || fail "package.json missing $1"
+    }
+
+    validate_field "name"
+    validate_field "version"
+    validate_field "displayName"
+    validate_field "unity"
+    validate_field "license"
+    validate_field "author"
+
+    # Validate name format
+    PKG_NAME=$(python3 -c "import json; print(json.load(open('package.json'))['name'])" 2>/dev/null || true)
+    if [ -n "$PKG_NAME" ]; then
+        if [[ "$PKG_NAME" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9_-]*){2,}$ ]]; then
+            ok "package name is valid reverse-DNS"
+        else
+            fail "package name '$PKG_NAME' is not valid reverse-DNS"
+        fi
+    fi
+
+    # Validate version format
+    PKG_VER=$(python3 -c "import json; print(json.load(open('package.json'))['version'])" 2>/dev/null || true)
+    if [ -n "$PKG_VER" ]; then
+        if [[ "$PKG_VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            ok "version '$PKG_VER' is semver"
+        else
+            fail "version '$PKG_VER' is not valid semver"
+        fi
+    fi
+fi
+
+# ── asmdef files ────────────────────────────────────────────────
+
+RUNTIME_ASMDEF=$(find . -maxdepth 2 -name "*.Runtime.asmdef" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
+TESTS_ASMDEF=$(find . -maxdepth 2 -name "*.Tests.asmdef" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
+
+[ -n "$RUNTIME_ASMDEF" ] && ok "Runtime asmdef exists" || fail "No Runtime asmdef"
+[ -n "$TESTS_ASMDEF" ] && ok "Tests asmdef exists" || warn "No Tests asmdef"
+
+# Check asmdef references match package dependencies
+if [ -n "$RUNTIME_ASMDEF" ] && [ -f "package.json" ]; then
+    ASMDEF_REFS=$(python3 -c "import json; print(' '.join(json.load(open('$RUNTIME_ASMDEF')).get('references',[])))" 2>/dev/null || true)
+    ok "Runtime asmdef references: $ASMDEF_REFS"
+fi
+
+# ── Forbidden files ─────────────────────────────────────────────
+
+DLLS=$(find . -path '*/bin' -prune -o -path '*/obj' -prune -o -path './.git' -prune \
+    -o -name '*.dll' -print 2>/dev/null || true)
+[ -z "$DLLS" ] && ok "No DLLs in package" || fail "DLLs found: $DLLS"
+
+# No bin/obj/artifacts tracked by git
+TRACKED_BUILD=$(git ls-files bin/ obj/ artifacts/ 2>/dev/null || true)
+[ -z "$TRACKED_BUILD" ] && ok "No build outputs tracked by git" || fail "Build outputs tracked: $TRACKED_BUILD"
+
+# No placeholders
+LEFTOVER=$(grep -rl '__[A-Z_]*__' \
+    --include='*.cs' --include='*.json' --include='*.asmdef' \
+    . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' | grep -v '.github/' || true)
+[ -z "$LEFTOVER" ] && ok "No unreplaced placeholders" || fail "Placeholders in: $LEFTOVER"
+
+# No template artifacts
+for f in setup.sh install.sh AGENTS.md; do
+    [ ! -f "$f" ] && ok "No $f (template artifact)" || fail "$f is a template artifact"
+done
+
+# No IDE/OS files
+JUNK=$(find . -maxdepth 3 -name "*.user" -o -name ".DS_Store" -o -name "Thumbs.db" | head -5 || true)
+[ -z "$JUNK" ] && ok "No IDE/OS junk files" || fail "Junk files: $JUNK"
+
+# ── Source structure ────────────────────────────────────────────
+
+RUNTIME_DIR=$(find . -maxdepth 1 -type d -name "*.Runtime" | head -1)
+[ -n "$RUNTIME_DIR" ] && ok "Runtime directory: $RUNTIME_DIR" || fail "No Runtime directory"
+
+TESTS_DIR=$(find . -maxdepth 1 -type d -name "*.Tests" | head -1)
+[ -n "$TESTS_DIR" ] && ok "Tests directory: $TESTS_DIR" || warn "No Tests directory"
+
+# ── Dotnet bridge ───────────────────────────────────────────────
+
+if ls *.slnx >/dev/null 2>&1; then ok "Solution file exists"; else warn "No .slnx file"; fi
+[ -d "src" ] && ok "src/ directory (dotnet bridge)" || warn "No src/ directory"
+[ -d "tests" ] && ok "tests/ directory (dotnet bridge)" || warn "No tests/ directory"
+
+# ── Summary ─────────────────────────────────────────────────────
+
+echo ""
+if [ "$FAIL" -eq 0 ]; then
+    echo "  ${GREEN}${BOLD}✓ Package is valid${RESET} ($PASS checks passed)"
+else
+    echo "  ${RED}${BOLD}✗ $FAIL issues found${RESET} ($PASS checks passed)"
+fi
+echo ""
+
+[ "$FAIL" -eq 0 ] && exit 0 || exit 1

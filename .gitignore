@@ -3,6 +3,9 @@
 [Oo]bj/
 [Aa]rtifacts/
 
+# GameCI
+.gameci/
+
 # IDE
 .idea/
 .vs/

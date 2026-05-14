@@ -1,0 +1,57 @@
+name: unity-package-test
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  unity-test:
+    name: Unity package tests (${{ matrix.unity }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        unity:
+          - 2022.3.60f1
+          - 6000.0.36f1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare package test directory
+        run: |
+          mkdir -p .gameci/package-under-test
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='bin' \
+            --exclude='obj' \
+            --exclude='.gameci' \
+            ./ .gameci/package-under-test/
+
+      - name: Run Unity package tests
+        id: unity-tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          packageMode: true
+          projectPath: .gameci/package-under-test
+          unityVersion: ${{ matrix.unity }}
+          testMode: All
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-test-results-${{ matrix.unity }}
+          path: ${{ steps.unity-tests.outputs.artifactsPath }}

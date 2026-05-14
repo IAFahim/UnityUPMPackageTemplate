@@ -273,18 +273,24 @@ done
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
 rm -f setup.sh install.sh AGENTS.md CHANGELOG.md
-chmod +x scripts/smoke.sh
+chmod +x scripts/smoke.sh scripts/doctor.sh scripts/validate-upm.sh scripts/version.sh scripts/test-template.sh
 
-# Rewrite CI — strip the template-only skip check so generated CI is clean
-if command -v python3 >/dev/null 2>&1; then
-    python3 -c "
-import re, sys
-with open('.github/workflows/ci.yml') as f: c = f.read()
-# Remove the 'if ls __PACKAGE__...' skip block
-c = re.sub(r'          if ls __PACKAGE__[^}]+\}\n', '', c, flags=re.DOTALL)
-with open('.github/workflows/ci.yml', 'w') as f: f.write(c)
+# Remove GameCI workflows — they need Unity license secrets the user hasn't set up yet
+# Users can re-add them from the template repo when ready
+rm -f .github/workflows/unity-package-test.yml
+rm -f .github/workflows/unity-activation.yml
+rm -f .github/workflows/release.yml
+
+# Remove sample code — user will write their own
+rm -rf Samples~ Documentation~
+
+# Remove samples key from package.json (no samples to show)
+python3 -c "
+import json
+with open('package.json') as f: d = json.load(f)
+d.pop('samples', None)
+with open('package.json', 'w') as f: json.dump(d, f, indent=2)
 " 2>/dev/null || true
-fi
 
 # Write a clean README — no template fingerprints
 BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"

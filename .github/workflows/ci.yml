@@ -61,3 +61,6 @@ jobs:
             exit 1
           fi
           echo "OK: No unreplaced placeholders."
+
+      - name: Template self-test
+        run: bash scripts/test-template.sh

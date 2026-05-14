@@ -11,5 +11,12 @@
   "license": "MIT",
   "author": {
     "name": "__AUTHOR__"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Example",
+      "description": "Sample usage of __DISPLAY__",
+      "path": "Samples~/Example"
+    }
+  ]
 }
