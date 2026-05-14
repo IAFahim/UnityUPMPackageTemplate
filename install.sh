@@ -273,16 +273,20 @@ done
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
 rm -f setup.sh install.sh AGENTS.md CHANGELOG.md
-chmod +x scripts/smoke.sh scripts/doctor.sh scripts/validate-upm.sh scripts/version.sh scripts/test-template.sh
+chmod +x scripts/*.sh
 
 # Remove GameCI workflows — they need Unity license secrets the user hasn't set up yet
 # Users can re-add them from the template repo when ready
 rm -f .github/workflows/unity-package-test.yml
 rm -f .github/workflows/unity-activation.yml
 rm -f .github/workflows/release.yml
+rm -f .github/workflows/ai-context.yml
 
 # Remove sample code — user will write their own
-rm -rf Samples~ Documentation~
+rm -rf Samples~ Documentation~ Skills~
+
+# Remove tools — only needed for template development
+rm -rf tools
 
 # Remove samples key from package.json (no samples to show)
 python3 -c "

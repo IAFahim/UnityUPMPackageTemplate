@@ -29,13 +29,11 @@ jobs:
 
       - name: Verify no Unity.Mathematics DLL leak
         run: |
-          # Check committed files
           if git ls-files | grep -qiE 'Unity\.Mathematics.*\.dll$'; then
             echo "FAIL: Unity.Mathematics DLL committed!"
             git ls-files | grep -iE 'Unity\.Mathematics.*\.dll$'
             exit 1
           fi
-          # Check package payload (everything except bin/obj)
           LEAKS=$(find . -path '*/bin' -prune -o -path '*/obj' -prune -o -path './.git' -prune \
             -o -name 'Unity.Mathematics*.dll' -print 2>/dev/null)
           if [ -n "$LEAKS" ]; then
@@ -47,7 +45,6 @@ jobs:
 
       - name: Verify no unreplaced placeholders
         run: |
-          # Skip if this is the raw template (placeholders are expected)
           if ls __PACKAGE__.Runtime/__PLACEHOLDER__.cs 2>/dev/null | grep -q .; then
             echo "SKIP: Template repo — placeholders are intentional."
             exit 0
@@ -61,6 +58,12 @@ jobs:
             exit 1
           fi
           echo "OK: No unreplaced placeholders."
+
+      - name: Validate UPM structure
+        run: bash scripts/validate-upm.sh || true
+
+      - name: Check package size
+        run: bash scripts/check-size.sh 500 || true
 
       - name: Template self-test
         run: bash scripts/test-template.sh

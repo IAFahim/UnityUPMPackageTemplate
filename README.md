@@ -18,7 +18,7 @@ cd my-package && ./setup.sh
 ```
 my-package/
 ├── com.owner.pkg.Runtime/       ← Your code (Unity compiles this)
-│   ├── Template.cs               ← Replace with your types
+│   ├── Template.cs
 │   └── *.Runtime.asmdef
 ├── com.owner.pkg.Tests/         ← Unity + CI tests
 │   └── Template.Tests.cs
@@ -27,11 +27,32 @@ my-package/
 ├── benchmarks/                   ← BenchmarkDotNet
 ├── package.json                  ← UPM manifest
 ├── Samples~/                     ← Unity importable samples
-├── Documentation~/               ← Unity docs
+│   ├── QuickStart/
+│   └── UIToolkitDemo/
+├── Documentation~/               ← Package docs
+│   ├── index.md
+│   ├── installation.md
+│   ├── quick-start.md
+│   ├── api.md
+│   └── release-notes.md
+├── Skills~/                      ← AI agent skills
+│   ├── unity-package/
+│   ├── release-debugging/
+│   ├── meta-files/
+│   ├── gameci/
+│   └── tests/
+├── tools/                        ← Build tools
+│   ├── TestLogCompact/
+│   ├── TestResultsCompact/
+│   ├── UnityPackageExporter/
+│   └── UnityMetaValidator/
 └── scripts/
     ├── smoke.sh                  ← Build + test + DLL leak check
     ├── doctor.sh                 ← Full environment diagnostic
     ├── validate-upm.sh           ← UPM package quality gate
+    ├── verify-meta.sh            ← .meta file integrity checker
+    ├── check-size.sh             ← Package size budget
+    ├── generate-ai-context.sh    ← AI context dump
     ├── version.sh                ← Bump version everywhere
     └── test-template.sh          ← Meta-test: does the template work?
 ```
@@ -61,19 +82,32 @@ Just press Enter through everything. Or pass args:
 | Command | What it does |
 |---|---|
 | `bash scripts/smoke.sh` | Build + test + DLL leak check |
-| `bash scripts/doctor.sh` | Full environment + package diagnostic |
-| `bash scripts/validate-upm.sh` | UPM package structure validator |
+| `bash scripts/doctor.sh` | 28+ environment + package diagnostics |
+| `bash scripts/validate-upm.sh` | 26 UPM package structure checks |
+| `bash scripts/verify-meta.sh` | .meta file integrity (GUIDs, orphans, dupes) |
+| `bash scripts/check-size.sh [KB]` | Package size budget check (default 500KB) |
+| `bash scripts/generate-ai-context.sh` | AI context dump (full + compact) |
 | `bash scripts/version.sh 0.2.0` | Bump version in package.json |
 | `bash scripts/test-template.sh` | Meta-test: creates fake package, verifies template works |
+
+## Tools
+
+| Tool | What it does |
+|---|---|
+| `TestLogCompact` | Unity Editor log → compact compile-error summary |
+| `TestResultsCompact` | NUnit XML → compact failed-test summary |
+| `UnityPackageExporter` | Editor script for .unitypackage export |
+| `UnityMetaValidator` | .meta file validation (GUIDs, dupes, orphans) |
 
 ## CI Workflows
 
 | Workflow | When | What |
 |---|---|---|
-| `ci.yml` | Every push/PR | dotnet build/test, DLL leak check, placeholder scan, template self-test |
+| `ci.yml` | Every push/PR | dotnet build/test, DLL leak, placeholders, UPM validate, size check, self-test |
 | `unity-package-test.yml` | Push to main/manual | GameCI Unity package tests (needs license secrets) |
 | `unity-activation.yml` | Manual | Generate Unity license activation file |
-| `release.yml` | Tag `v*` | Verify version, test, create GitHub release with archive |
+| `release.yml` | Tag `v*` | Verify version, test, validate, size, AI context, GitHub release |
+| `ai-context.yml` | Push/PR/manual | Generate AI context artifacts |
 
 ## Daily workflow
 
@@ -92,8 +126,15 @@ bash scripts/version.sh 0.2.0
 git add -A && git commit -m "release 0.2.0"
 git tag v0.2.0
 git push --tags
-# → CI validates, creates GitHub release with package zip
+# → CI validates → creates GitHub release with package zip + AI context
 ```
+
+## GameCI setup
+
+1. Run Actions → `unity-activation`
+2. Download the `.alf` file
+3. Convert to license at license.unity3d.com
+4. Add secrets: `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`
 
 ## How the math trick works
 
@@ -116,8 +157,8 @@ Unity:
 
 After `setup.sh` or `install.sh` runs, **zero template traces** remain:
 - ❌ No `setup.sh`, `install.sh`, `AGENTS.md`, `CHANGELOG.md`
-- ❌ No GameCI workflows (need Unity license secrets)
-- ❌ No sample code or template documentation
+- ❌ No GameCI/release/ai-context workflows (need configuration)
+- ❌ No sample code, docs, skills, tools
 - ❌ No template skip-check in CI
 - ✅ Core CI workflow kept (cleaned of template fingerprints)
 - ✅ Scripts kept: `smoke.sh`, `doctor.sh`, `validate-upm.sh`, `version.sh`

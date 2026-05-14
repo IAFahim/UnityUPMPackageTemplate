@@ -14,9 +14,14 @@
   },
   "samples": [
     {
-      "displayName": "Example",
-      "description": "Sample usage of __DISPLAY__",
-      "path": "Samples~/Example"
+      "displayName": "Quick Start",
+      "description": "Minimal usage example of __DISPLAY__",
+      "path": "Samples~/QuickStart"
+    },
+    {
+      "displayName": "UI Toolkit Demo",
+      "description": "Editor/UI Toolkit example for __DISPLAY__",
+      "path": "Samples~/UIToolkitDemo"
     }
   ]
 }

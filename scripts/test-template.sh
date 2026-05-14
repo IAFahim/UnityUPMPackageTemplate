@@ -29,9 +29,6 @@ fi
 mkdir -p "$TEST_DIR"
 cp -r "$TEMPLATE_ROOT" "$TEST_DIR/pkg"
 cd "$TEST_DIR/pkg"
-
-# Remove any existing git history
-cd "$TEST_DIR/pkg"
 rm -rf .git
 
 # Run setup with CLI args (non-interactive)
@@ -42,12 +39,32 @@ bash setup.sh com.selftest.verify "Self Test" "CI Bot" "SelfTest.Verify" 2>&1 | 
 echo ""
 echo "  ${BOLD}Checking structure...${RESET}"
 
-[ -d "com.selftest.verify.Runtime" ] && echo "  ${GREEN}✓${RESET} Runtime dir" || { echo "  ${RED}✗${RESET} Runtime dir"; exit 1; }
-[ -d "com.selftest.verify.Tests" ]   && echo "  ${GREEN}✓${RESET} Tests dir"   || { echo "  ${RED}✗${RESET} Tests dir"; exit 1; }
-[ -f "package.json" ]                && echo "  ${GREEN}✓${RESET} package.json" || { echo "  ${RED}✗${RESET} package.json"; exit 1; }
-[ ! -f "setup.sh" ]                  && echo "  ${GREEN}✓${RESET} setup.sh erased" || { echo "  ${RED}✗${RESET} setup.sh still exists"; exit 1; }
-[ ! -f "install.sh" ]               && echo "  ${GREEN}✓${RESET} install.sh erased" || { echo "  ${RED}✗${RESET} install.sh still exists"; exit 1; }
-[ ! -f "AGENTS.md" ]                && echo "  ${GREEN}✓${RESET} AGENTS.md erased" || { echo "  ${RED}✗${RESET} AGENTS.md still exists"; exit 1; }
+check() {
+    if [ "$1" = "exists" ] && [ -e "$2" ]; then
+        echo "  ${GREEN}✓${RESET} $2"
+    elif [ "$1" = "missing" ] && [ ! -e "$2" ]; then
+        echo "  ${GREEN}✓${RESET} $2 (erased)"
+    else
+        echo "  ${RED}✗${RESET} $2 ($1 check failed)"
+        exit 1
+    fi
+}
+
+check exists "com.selftest.verify.Runtime"
+check exists "com.selftest.verify.Tests"
+check exists "package.json"
+check exists "README.md"
+check exists "LICENSE"
+check exists "scripts/smoke.sh"
+check exists "scripts/doctor.sh"
+check exists "scripts/validate-upm.sh"
+check exists "scripts/version.sh"
+check exists "scripts/test-template.sh"
+check exists "com.selftest.verify.slnx"
+check missing "setup.sh"
+check missing "install.sh"
+check missing "AGENTS.md"
+check missing "CHANGELOG.md"
 
 # ── Verify no placeholders ─────────────────────────────────────
 
@@ -102,6 +119,27 @@ if [ -z "$LEAKS" ]; then
     echo "  ${GREEN}✓${RESET} No DLL leak"
 else
     echo "  ${RED}✗${RESET} DLL leak: $LEAKS"
+    exit 1
+fi
+
+# ── Verify scripts ──────────────────────────────────────────────
+
+echo ""
+echo "  ${BOLD}Checking scripts...${RESET}"
+
+# doctor.sh should pass (with set -u not -e)
+if bash scripts/doctor.sh 2>&1 | grep -q "All checks pass"; then
+    echo "  ${GREEN}✓${RESET} doctor.sh"
+else
+    echo "  ${RED}✗${RESET} doctor.sh failed"
+    exit 1
+fi
+
+# validate-upm.sh should pass
+if bash scripts/validate-upm.sh 2>&1 | grep -q "Package is valid"; then
+    echo "  ${GREEN}✓${RESET} validate-upm.sh"
+else
+    echo "  ${RED}✗${RESET} validate-upm.sh failed"
     exit 1
 fi
 

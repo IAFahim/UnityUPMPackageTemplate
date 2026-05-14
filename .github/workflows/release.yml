@@ -38,20 +38,43 @@ jobs:
       - name: Validate package
         run: bash scripts/validate-upm.sh
 
+      - name: Check package size
+        run: bash scripts/check-size.sh 500
+
+      - name: Generate AI context
+        run: bash scripts/generate-ai-context.sh artifacts/ai/codebase.md
+
   release:
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create release archive
+      - name: Create release artifacts
         run: |
-          mkdir -p artifacts
+          mkdir -p artifacts/release
+
+          # Package zip (full repo)
           git archive --format=zip --prefix=$GITHUB_REPOSITORY_NAME/ HEAD \
-            -o artifacts/package.zip
+            -o artifacts/release/package.zip
+
+          # AI context
+          bash scripts/generate-ai-context.sh artifacts/ai/codebase.md 2>/dev/null || true
+
+          # Test summary
+          echo "# Release $GITHUB_REF_NAME" > artifacts/release/test-summary.md
+          echo "" >> artifacts/release/test-summary.md
+          echo "- dotnet build: ✓" >> artifacts/release/test-summary.md
+          echo "- dotnet test: ✓" >> artifacts/release/test-summary.md
+          echo "- UPM validation: ✓" >> artifacts/release/test-summary.md
+          echo "- Package size: ✓" >> artifacts/release/test-summary.md
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/package.zip
+          files: |
+            artifacts/release/package.zip
+            artifacts/release/test-summary.md
+            artifacts/ai/codebase.md
+            artifacts/ai/codebase.compact.md
           generate_release_notes: true

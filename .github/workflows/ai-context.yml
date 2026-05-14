@@ -1,0 +1,26 @@
+name: ai-context
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate AI context
+        run: bash scripts/generate-ai-context.sh artifacts/ai/codebase.md
+
+      - name: Upload AI context
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-context
+          path: artifacts/ai/
+          retention-days: 30
