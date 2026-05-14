@@ -138,11 +138,12 @@ done
 # ── Erase all traces of the template ────────────────────────────
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
-rm -f setup.sh
-rm -f install.sh
-rm -f AGENTS.md
-rm -f CHANGELOG.md
-rm -rf .github
+rm -f "$OLDPWD/$FOLDER_NAME/setup.sh" 2>/dev/null || true
+rm -f setup.sh 2>/dev/null || true
+rm -f install.sh 2>/dev/null || true
+rm -f AGENTS.md 2>/dev/null || true
+rm -f CHANGELOG.md 2>/dev/null || true
+rm -rf .github 2>/dev/null || true
 chmod +x scripts/smoke.sh
 
 # ── Verify ──────────────────────────────────────────────────────
