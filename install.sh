@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # ┌───────────────────────────────────────────────────────────────────┐
 # │                                                                   │
-# │   Unity UPM Package Creator                                       │
+# │   unity-package create                                            │
 # │                                                                   │
 # │   One command. Your Unity package. Done.                          │
 # │                                                                   │
-# │   Usage:                                                          │
-# │     bash <(curl -sL INSTALL_URL/install.sh)                       │
-# │     bash <(curl -sL INSTALL_URL/install.sh) my-folder             │
+# │   bash <(curl -sL INSTALL_URL/install.sh)                         │
+# │   bash <(curl -sL INSTALL_URL/install.sh) my-folder               │
 # │                                                                   │
 # └───────────────────────────────────────────────────────────────────┘
 set -euo pipefail
@@ -15,73 +14,195 @@ set -euo pipefail
 TEMPLATE_REPO="https://github.com/IAFahim/UnityUPMPackageTemplate.git"
 FOLDER_NAME="${1:-}"
 
-BOLD='\033[1m'
-DIM='\033[2m'
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+BOLD='\033[1m' DIM='\033[2m' GREEN='\033[32m' CYAN='\033[36m' YELLOW='\033[33m' RESET='\033[0m'
+
+# ── Helpers ─────────────────────────────────────────────────────
+
+# Pascal-case a string: "grid-pathfinding" → "GridPathfinding"
+pascal() {
+    echo "$1" | sed 's/[-_ ]\+/_/g' | awk -F'_' '{for(i=1;i<=NF;i++) printf "%s%s", toupper(substr($i,1,1)), substr($i,2)}'
+}
+
+# Convert com.owner.package-name → Owner.PackageName
+package_to_namespace() {
+    echo "$1" | awk -F'.' '{
+        for(i=2;i<=NF;i++) {
+            split($i, parts, /[-_]/)
+            for(j=1;j<=length(parts);j++) {
+                printf "%s%s", toupper(substr(parts[j],1,1)), substr(parts[j],2)
+                if(j<length(parts)) printf ""
+            }
+            if(i<NF) printf "."
+        }
+    }'
+}
+
+# Validate UPM package ID: lowercase, reverse-DNS, no spaces
+validate_package_id() {
+    if [[ ! "$1" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9_-]*){2,}$ ]]; then
+        return 1
+    fi
+    return 0
+}
+
+# Detect installed Unity versions, return highest
+detect_unity_min() {
+    local hub="/home/l/Unity/Hub/Editor"
+    if [ -d "$hub" ]; then
+        local best=""
+        for d in "$hub"/*/; do
+            local v=$(basename "$d")
+            # Extract major.minor (e.g. 6000.6 → "6000.6", or 2022.3)
+            if [[ "$v" =~ ^([0-9]+\.[0-9]+) ]]; then
+                best="$v"
+            fi
+        done
+        if [ -n "$best" ]; then
+            # Convert Unity version to human-readable: 2022.3 → 2022.3, 6000.x → 6.x
+            if [[ "$best" =~ ^6000\.([0-9]+) ]]; then
+                echo "6000.${BASH_REMATCH[1]}"
+            elif [[ "$best" =~ ^([0-9]+\.[0-9]+) ]]; then
+                echo "${BASH_REMATCH[1]}"
+            fi
+            return
+        fi
+    fi
+    # Default
+    echo "2022.3"
+}
+
+# Detect GitHub owner from gh CLI
+detect_github_owner() {
+    if command -v gh >/dev/null 2>&1; then
+        gh api user -q .login 2>/dev/null && return
+    fi
+    echo ""
+}
+
+# Detect git author name
+detect_author() {
+    local name=$(git config --global user.name 2>/dev/null)
+    if [ -n "$name" ]; then
+        echo "$name"
+        return
+    fi
+    local owner=$(detect_github_owner)
+    if [ -n "$owner" ]; then
+        echo "$owner"
+        return
+    fi
+    echo ""
+}
+
+# ── Banner ──────────────────────────────────────────────────────
 
 echo ""
 echo "  ${BOLD}╔══════════════════════════════════════════════════════╗${RESET}"
-echo "  ${BOLD}║                                                      ║${RESET}"
 echo "  ${BOLD}║   ${CYAN}Unity UPM Package Creator${RESET}${BOLD}                          ║${RESET}"
-echo "  ${BOLD}║   ${DIM}Build outside Unity. Ship as Unity package.${RESET}${BOLD}       ║${RESET}"
-echo "  ${BOLD}║                                                      ║${RESET}"
+echo "  ${BOLD}║   ${DIM}One command. Your package. Done.${RESET}${BOLD}                   ║${RESET}"
 echo "  ${BOLD}╚══════════════════════════════════════════════════════╝${RESET}"
 echo ""
 
-# ── Gather inputs ───────────────────────────────────────────────
+# ── Smart defaults ──────────────────────────────────────────────
+
+DEFAULT_AUTHOR=$(detect_author)
+DEFAULT_UNITY=$(detect_unity_min)
+DEFAULT_GH_OWNER=$(detect_github_owner)
+
+# ── Folder name → derive package ID suggestion ──────────────────
 
 if [ -z "$FOLDER_NAME" ]; then
-    read -rp "  ${BOLD}Folder name${RESET} (e.g. grid-pathfinding): " FOLDER_NAME
+    FOLDER_NAME=$(basename "$(pwd)")
+    # If we're in $HOME, don't use that
+    if [ "$FOLDER_NAME" = "$HOME" ] || [ "$FOLDER_NAME" = "$(basename "$HOME")" ]; then
+        FOLDER_NAME=""
+    fi
+    if [ -n "$FOLDER_NAME" ]; then
+        read -rp "  ${BOLD}Folder name${RESET} [$FOLDER_NAME]: " INPUT
+        FOLDER_NAME="${INPUT:-$FOLDER_NAME}"
+    else
+        read -rp "  ${BOLD}Folder name${RESET} (e.g. grid-pathfinding): " FOLDER_NAME
+    fi
 fi
 
 if [ -z "$FOLDER_NAME" ]; then
-    echo "  Need a folder name. Aborting."
-    exit 1
+    echo "  Need a folder name." && exit 1
 fi
 
 if [ -d "$FOLDER_NAME" ]; then
-    echo "  Folder '$FOLDER_NAME' already exists. Aborting."
-    exit 1
+    echo "  '$FOLDER_NAME' already exists." && exit 1
 fi
 
-echo ""
-echo "  ${DIM}── Package Identity ──────────────────────────────────${RESET}"
-echo ""
-read -rp "  ${BOLD}Package ID${RESET} (e.g. com.bovinelabs.grid.pathfinding): " PACKAGE_ID
-read -rp "  ${BOLD}Display name${RESET} (e.g. Grid Pathfinding): " DISPLAY_NAME
-read -rp "  ${BOLD}Author${RESET} (e.g. Vex Interactive): " AUTHOR
-read -rp "  ${BOLD}C# namespace${RESET} [auto]: " NAMESPACE
-
-if [ -z "$PACKAGE_ID" ] || [ -z "$DISPLAY_NAME" ] || [ -z "$AUTHOR" ]; then
-    echo "  Package ID, display name, and author are required. Aborting."
-    exit 1
+# Derive a suggested package ID from folder name
+SUGGESTED_ID=""
+OWNER_HINT=""
+if [ -n "$DEFAULT_GH_OWNER" ]; then
+    # lowercase the owner, strip spaces
+    OWNER_HINT=$(echo "$DEFAULT_GH_OWNER" | tr '[:upper:]' '[:lower:]' | tr -d ' ')
+fi
+if [[ "$FOLDER_NAME" =~ ^[a-z]+(\.[a-z0-9_-]+){2,}$ ]]; then
+    # Already looks like a package ID (e.g. com.bovinelabs.grid)
+    SUGGESTED_ID="$FOLDER_NAME"
+elif [ -n "$OWNER_HINT" ]; then
+    # folder name → com.owner.folder-name
+    SUGGESTED_ID="com.${OWNER_HINT}.$(echo "$FOLDER_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
 fi
 
-if [ -z "$NAMESPACE" ]; then
-    NAMESPACE=$(echo "$PACKAGE_ID" | awk -F'.' '{
-        for(i=2;i<=NF;i++) printf "%s%s", toupper(substr($i,1,1)) substr($i,2), (i<NF?".":"")
-    }')
+# ── Gather inputs ───────────────────────────────────────────────
+
+echo ""
+echo "  ${DIM}── Identity ─────────────────────────────────────────${RESET}"
+echo ""
+
+if [ -n "$SUGGESTED_ID" ]; then
+    read -rp "  ${BOLD}Package ID${RESET} [$SUGGESTED_ID]: " PACKAGE_ID
+    PACKAGE_ID="${PACKAGE_ID:-$SUGGESTED_ID}"
+else
+    read -rp "  ${BOLD}Package ID${RESET} (e.g. com.bovinelabs.grid.pathfinding): " PACKAGE_ID
+fi
+
+# Validate
+if ! validate_package_id "$PACKAGE_ID"; then
+    echo "  ${YELLOW}⚠${RESET} Invalid package ID. Must be lowercase reverse-DNS (e.g. com.owner.name)." && exit 1
+fi
+
+DERIVED_NAMESPACE=$(package_to_namespace "$PACKAGE_ID")
+DERIVED_DISPLAY=$(pascal "$(echo "$PACKAGE_ID" | awk -F'.' '{print $NF}')")
+
+read -rp "  ${BOLD}Display name${RESET} [$DERIVED_DISPLAY]: " DISPLAY_NAME
+DISPLAY_NAME="${DISPLAY_NAME:-$DERIVED_DISPLAY}"
+
+if [ -n "$DEFAULT_AUTHOR" ]; then
+    read -rp "  ${BOLD}Author${RESET} [$DEFAULT_AUTHOR]: " AUTHOR
+    AUTHOR="${AUTHOR:-$DEFAULT_AUTHOR}"
+else
+    read -rp "  ${BOLD}Author${RESET} (e.g. Vex Interactive): " AUTHOR
+fi
+
+read -rp "  ${BOLD}C# namespace${RESET} [$DERIVED_NAMESPACE]: " NAMESPACE
+NAMESPACE="${NAMESPACE:-$DERIVED_NAMESPACE}"
+
+# GitHub owner (for install URL) — separate from display author
+if [ -n "$DEFAULT_GH_OWNER" ]; then
+    GH_OWNER="$DEFAULT_GH_OWNER"
+else
+    read -rp "  ${BOLD}GitHub owner/org${RESET}: " GH_OWNER
 fi
 
 YEAR=$(date +%Y)
 
 echo ""
 echo "  ${DIM}──────────────────────────────────────────────────────${RESET}"
-echo "  ${BOLD}Package:${RESET}   $PACKAGE_ID"
-echo "  ${BOLD}Display:${RESET}    $DISPLAY_NAME"
-echo "  ${BOLD}Author:${RESET}     $AUTHOR"
-echo "  ${BOLD}Namespace:${RESET}  $NAMESPACE"
-echo "  ${BOLD}Folder:${RESET}     $FOLDER_NAME"
+echo "  ${BOLD}Package:${RESET}    $PACKAGE_ID"
+echo "  ${BOLD}Display:${RESET}     $DISPLAY_NAME"
+echo "  ${BOLD}Author:${RESET}      $AUTHOR"
+echo "  ${BOLD}Namespace:${RESET}   $NAMESPACE"
+echo "  ${BOLD}GitHub:${RESET}      $GH_OWNER"
+echo "  ${BOLD}Folder:${RESET}      $FOLDER_NAME"
 echo "  ${DIM}──────────────────────────────────────────────────────${RESET}"
 echo ""
 read -rp "  ${BOLD}Create?${RESET} [Y/n] " CONFIRM
-
-if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
-    echo "  Aborted."
-    exit 0
-fi
+[[ "$CONFIRM" =~ ^[Nn] ]] && echo "  Aborted." && exit 0
 
 # ── Clone ───────────────────────────────────────────────────────
 
@@ -94,6 +215,7 @@ rm -rf .git
 # ── Rename folders ──────────────────────────────────────────────
 
 echo "  ${GREEN}►${RESET} Building structure..."
+
 [ -d "__PACKAGE__.Runtime" ] && mv "__PACKAGE__.Runtime" "$PACKAGE_ID.Runtime"
 [ -d "__PACKAGE__.Tests" ] && mv "__PACKAGE__.Tests" "$PACKAGE_ID.Tests"
 [ -d "src/__PACKAGE__" ] && mv "src/__PACKAGE__" "src/$PACKAGE_ID"
@@ -110,9 +232,10 @@ find . -name "__PACKAGE__*" -not -path "*/bin/*" -not -path "*/obj/*" | while re
     [ "$base" != "$newname" ] && mv "$f" "$dir/$newname"
 done
 
-# ── Personalize ─────────────────────────────────────────────────
+# ── Personalize all files ───────────────────────────────────────
 
 echo "  ${GREEN}►${RESET} Personalizing..."
+
 find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*.asmdef" \
     -o -name "*.json" -o -name "*.yml" -o -name "*.md" -o -name "*.sh" -o -name "*.ps1" \
     -o -name "LICENSE" \) \
@@ -126,7 +249,7 @@ find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*
     -e "s/__YEAR__/$YEAR/g" \
     {} +
 
-# ── Clean placeholder files ─────────────────────────────────────
+# ── Clean placeholder source files ──────────────────────────────
 
 find . -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
     dir=$(dirname "$f")
@@ -135,67 +258,83 @@ find . -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | whil
     mv "$f" "$dir/$newname"
 done
 
-# ── Erase all traces of the template ────────────────────────────
+# ── Erase every trace of the template ───────────────────────────
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
-rm -f "$OLDPWD/$FOLDER_NAME/setup.sh" 2>/dev/null || true
-rm -f setup.sh 2>/dev/null || true
-rm -f install.sh 2>/dev/null || true
-rm -f AGENTS.md 2>/dev/null || true
-rm -f CHANGELOG.md 2>/dev/null || true
-rm -rf .github 2>/dev/null || true
+rm -f setup.sh install.sh AGENTS.md CHANGELOG.md
+rm -rf .github
 chmod +x scripts/smoke.sh
 
-# Write a clean README — no template references
+# Write a clean README — no template fingerprints
+BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"
 cat > README.md <<README
 # $DISPLAY_NAME
 
+[![CI]($BADGE_URL)](https://github.com/$GH_OWNER/$PACKAGE_ID/actions)
+
 > $DISPLAY_NAME
 
-Build outside Unity. Ship as Unity package.
+**Build outside Unity. Ship as Unity package.**
 
 \`\`\`bash
 dotnet test -c Release
 git push
 \`\`\`
 
-## Installation
+## Install
 
-Add to your Unity project's \`Packages/manifest.json\`:
+Add to \`Packages/manifest.json\`:
 
 \`\`\`json
-{
-  "dependencies": {
-    "$PACKAGE_ID": "https://github.com/$AUTHOR/$PACKAGE_ID.git"
-  }
-}
+"$PACKAGE_ID": "https://github.com/$GH_OWNER/$PACKAGE_ID.git"
 \`\`\`
 
-Or Unity Editor → Package Manager → Add package from git URL.
+Or Unity → Package Manager → Add from git URL.
 
-## Requirements
+## Dev
 
-- .NET 8 SDK (for development)
-- Unity 2022.3+ (for runtime)
+\`\`\`bash
+dotnet restore
+dotnet test -c Release
+\`\`\`
 
-## License
+Source: \`$PACKAGE_ID.Runtime/\`  Tests: \`$PACKAGE_ID.Tests/\`
 
 MIT © $YEAR $AUTHOR
 README
 
-# ── Verify ──────────────────────────────────────────────────────
+# ── Verify build ────────────────────────────────────────────────
 
 echo "  ${GREEN}►${RESET} Restoring..."
-dotnet restore "$PACKAGE_ID.slnx" >/dev/null 2>&1
+if ! dotnet restore "$PACKAGE_ID.slnx" >/dev/null 2>&1; then
+    echo "  ${YELLOW}⚠${RESET} Restore failed. Check .NET SDK version."
+    exit 1
+fi
 
 echo "  ${GREEN}►${RESET} Building..."
-dotnet build "$PACKAGE_ID.slnx" -c Release --no-restore >/dev/null 2>&1
+if ! dotnet build "$PACKAGE_ID.slnx" -c Release --no-restore >/dev/null 2>&1; then
+    echo "  ${YELLOW}⚠${RESET} Build failed."
+    exit 1
+fi
 
 echo "  ${GREEN}►${RESET} Testing..."
-TEST_OUTPUT=$(dotnet test "$PACKAGE_ID.slnx" -c Release --no-build 2>&1)
-if echo "$TEST_OUTPUT" | grep -q "Passed!"; then
-    PASSED=$(echo "$TEST_OUTPUT" | grep -oP 'Passed:\s*\K\d+')
+TEST_OUT=$(dotnet test "$PACKAGE_ID.slnx" -c Release --no-build 2>&1) || true
+if echo "$TEST_OUT" | grep -q "Passed!"; then
+    PASSED=$(echo "$TEST_OUT" | grep -oP 'Passed:\s*\K\d+')
     echo "  ${GREEN}✓${RESET} ${BOLD}${PASSED:-0} tests pass${RESET}"
+else
+    echo "$TEST_OUT" | tail -5
+    echo "  ${YELLOW}⚠${RESET} Tests failed."
+fi
+
+# ── Verify no leftover placeholders ─────────────────────────────
+
+LEFTOVER=$(grep -rl "__PACKAGE__\|__NAMESPACE__\|__AUTHOR__\|__DISPLAY__\|__PLACEHOLDER__" \
+    --include="*.cs" --include="*.json" --include="*.md" --include="*.yml" --include="*.asmdef" \
+    . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' || true)
+if [ -n "$LEFTOVER" ]; then
+    echo "  ${YELLOW}⚠${RESET} Unreplaced placeholders in:"
+    echo "$LEFTOVER" | sed 's/^/    /'
 fi
 
 # ── Git init ────────────────────────────────────────────────────
@@ -203,25 +342,30 @@ fi
 echo "  ${GREEN}►${RESET} Initializing..."
 git init >/dev/null 2>&1
 git add -A >/dev/null 2>&1
-git commit -m "init" >/dev/null 2>&1
+
+if ! git commit -m "init" >/dev/null 2>&1; then
+    echo "  ${DIM}Git commit failed — configure user.name/user.email then commit manually.${RESET}"
+fi
 git branch -M main >/dev/null 2>&1
 
-# ── GitHub ──────────────────────────────────────────────────────
+# ── GitHub push ─────────────────────────────────────────────────
 
 echo ""
 if command -v gh >/dev/null 2>&1; then
     read -rp "  ${BOLD}Push to GitHub?${RESET} [Y/n] " PUSH_GH
-    if [ "$PUSH_GH" != "n" ] && [ "$PUSH_GH" != "N" ]; then
-        GH_USER=$(gh api user -q .login 2>/dev/null || echo "")
+    if [[ ! "$PUSH_GH" =~ ^[Nn] ]]; then
         read -rp "  ${BOLD}Repo name${RESET} [$PACKAGE_ID]: " GH_REPO
         GH_REPO="${GH_REPO:-$PACKAGE_ID}"
-        read -rp "  ${BOLD}Visibility${RESET} [public/private]: " GH_VIS
+        read -rp "  ${BOLD}Visibility${RESET} [public]: " GH_VIS
         GH_VIS="${GH_VIS:-public}"
 
         echo "  ${GREEN}►${RESET} Pushing..."
-        gh repo create "$GH_USER/$GH_REPO" --${GH_VIS} --source=. --push \
-            --description "$DISPLAY_NAME" 2>&1 | head -1
-        echo "  ${GREEN}✓${RESET} ${BOLD}github.com/$GH_USER/$GH_REPO${RESET}"
+        if gh repo create "$GH_OWNER/$GH_REPO" --${GH_VIS} --source=. --push \
+            --description "$DISPLAY_NAME" 2>&1 | head -1; then
+            echo "  ${GREEN}✓${RESET} ${BOLD}github.com/$GH_OWNER/$GH_REPO${RESET}"
+        else
+            echo "  ${DIM}Push failed. Create manually: gh repo create then git push -u origin main${RESET}"
+        fi
     fi
 fi
 

@@ -1,7 +1,7 @@
 # Build outputs
-bin/
-obj/
-artifacts/
+[Bb]in/
+[Oo]bj/
+[Aa]rtifacts/
 
 # IDE
 .idea/
@@ -9,7 +9,11 @@ artifacts/
 .vscode/
 *.user
 *.suo
+*.DotSettings.user
 
 # OS
 .DS_Store
 Thumbs.db
+
+# NuGet
+*.nupkg

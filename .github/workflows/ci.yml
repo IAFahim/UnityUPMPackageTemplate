@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            8.0.x
+            9.0.x
 
       - name: Restore
         run: dotnet restore *.slnx
@@ -27,11 +27,32 @@ jobs:
       - name: Test
         run: dotnet test *.slnx -c Release --no-build
 
-      - name: Verify no Unity.Mathematics DLL in output
+      - name: Verify no Unity.Mathematics DLL leak
         run: |
-          if find src -name "Unity.Mathematics*" -type f 2>/dev/null | grep -q .; then
-            echo "FAIL: Unity.Mathematics DLL leaked into output!"
-            find src -name "Unity.Mathematics*" -type f
+          # Check committed files
+          if git ls-files | grep -qiE 'Unity\.Mathematics.*\.dll$'; then
+            echo "FAIL: Unity.Mathematics DLL committed!"
+            git ls-files | grep -iE 'Unity\.Mathematics.*\.dll$'
             exit 1
           fi
-          echo "OK: No Unity.Mathematics DLL in output."
+          # Check package payload (everything except bin/obj)
+          LEAKS=$(find . -path '*/bin' -prune -o -path '*/obj' -prune -o -path './.git' -prune \
+            -o -name 'Unity.Mathematics*.dll' -print 2>/dev/null)
+          if [ -n "$LEAKS" ]; then
+            echo "FAIL: Unity.Mathematics DLL in package!"
+            echo "$LEAKS"
+            exit 1
+          fi
+          echo "OK: No Unity.Mathematics DLL leak."
+
+      - name: Verify no unreplaced placeholders
+        run: |
+          LEFTOVER=$(grep -rl '__PACKAGE__\|__NAMESPACE__\|__AUTHOR__\|__DISPLAY__\|__PLACEHOLDER__' \
+            --include='*.cs' --include='*.json' --include='*.asmdef' . 2>/dev/null \
+            | grep -v '/obj/' | grep -v '/bin/' || true)
+          if [ -n "$LEFTOVER" ]; then
+            echo "FAIL: Unreplaced template placeholders:"
+            echo "$LEFTOVER"
+            exit 1
+          fi
+          echo "OK: No unreplaced placeholders."

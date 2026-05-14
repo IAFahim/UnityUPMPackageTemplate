@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="UnityMathematics.NoDeps" Version="1.3.2" />
+    <PackageReference Include="UnityMathematics.NoDeps" Version="$(UnityMathematicsVersion)" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
