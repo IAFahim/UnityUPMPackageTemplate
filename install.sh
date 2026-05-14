@@ -358,6 +358,8 @@ if command -v gh >/dev/null 2>&1; then
         GH_REPO="${GH_REPO:-$PACKAGE_ID}"
         read -rp "  ${BOLD}Visibility${RESET} [public]: " GH_VIS
         GH_VIS="${GH_VIS:-public}"
+        # Accept truthy as public
+        case "$GH_VIS" in pub|public|p|y|yes|Y|YES) GH_VIS="public";; priv|private|n|no|N|NO) GH_VIS="private";; *) GH_VIS="public";; esac
 
         echo "  ${GREEN}►${RESET} Pushing..."
         if gh repo create "$GH_OWNER/$GH_REPO" --${GH_VIS} --source=. --push \
