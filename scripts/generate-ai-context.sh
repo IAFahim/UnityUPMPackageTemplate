@@ -65,7 +65,7 @@ manual_full() {
             .github/workflows/ci.yml \
             .github/workflows/template-self-test.yml \
             .github/workflows/unity-package-test.yml \
-            scripts/setup.sh \
+            setup.sh \
             scripts/test-template.sh \
             scripts/validate-upm.sh \
             scripts/generate-ai-context.sh

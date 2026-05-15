@@ -268,12 +268,13 @@ fi
 # ── Cleanup ─────────────────────────────────────────────────────
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
-rm -f setup.sh install.sh AGENTS.md
+rm -f setup.sh install.sh AGENTS.md CHANGELOG.md TODO_GOD_TIER_UNITY_PACKAGE_TEMPLATE.md
+rm -f scripts/test-template.sh scripts/test-cli.sh
 chmod +x scripts/*.sh
 
 if [ "$MINIMAL" = true ]; then
     rm -f .github/workflows/unity-package-test.yml .github/workflows/unity-activation.yml .github/workflows/release.yml .github/workflows/ai-context.yml
-    rm -rf Samples~ Documentation~ Skills~ tools
+    rm -rf Samples~ Documentation~ Skills~ Dev~/benchmarks Dev~/tools
 fi
 
 # Clean README

@@ -138,8 +138,8 @@ else
     warn "No .slnx file found"
 fi
 
-if [ -d "src" ]; then
-    SRC_CSPROJ=$(find src -name "*.csproj" | head -1)
+if [ -d "Dev~/src" ]; then
+    SRC_CSPROJ=$(find Dev~/src -name "*.csproj" | head -1)
     if [ -n "$SRC_CSPROJ" ]; then
         ok "src project: $(basename "$SRC_CSPROJ")"
         # Check compile includes point at Runtime

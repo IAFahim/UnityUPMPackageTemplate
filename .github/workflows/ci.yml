@@ -69,4 +69,4 @@ jobs:
         run: bash scripts/check-size.sh 500
 
       - name: Template self-test
-        run: bash scripts/test-template.sh
+        run: if [ -f scripts/test-template.sh ]; then bash scripts/test-template.sh; else echo "Skipped (not a template)"; fi
