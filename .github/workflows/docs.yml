@@ -1,0 +1,59 @@
+name: docs
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Generate API docs
+        run: bash scripts/generate-docs.sh Documentation~/api
+
+      - name: Build docs site
+        run: |
+          pip install mkdocs mkdocs-material --quiet
+          # Create minimal mkdocs.yml if it doesn't exist
+          if [ ! -f mkdocs.yml ]; then
+            DISPLAY=$(python3 -c "import json; print(json.load(open('package.json'))['displayName'])")
+            cat > mkdocs.yml <<YAML
+          site_name: $DISPLAY
+          docs_dir: Documentation~
+          theme:
+            name: material
+            palette:
+              scheme: slate
+              primary: deep purple
+          YAML
+          fi
+          mkdocs build --site-dir artifacts/docs
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts/docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

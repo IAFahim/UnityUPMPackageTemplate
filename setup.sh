@@ -215,11 +215,15 @@ rm -- "$0"
 # Clean README
 BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"
 OPENUPM_BADGE_URL="https://img.shields.io/npm/v/$PACKAGE_ID?label=openupm&registry_uri=https://package.openupm.com"
+DOCS_BADGE="https://img.shields.io/badge/docs-pages-blue"
+DOCS_URL="https://$GH_OWNER.github.io/$PACKAGE_ID"
+
 cat > README.md <<README
 # $DISPLAY_NAME
 
 [![CI]($BADGE_URL)](https://github.com/$GH_OWNER/$PACKAGE_ID/actions)
 [![OpenUPM]($OPENUPM_BADGE_URL)](https://openupm.com/packages/$PACKAGE_ID/)
+[![Docs]($DOCS_BADGE)]($DOCS_URL)
 
 > $DISPLAY_NAME
 
@@ -254,6 +258,32 @@ Source: \`$PACKAGE_ID.Runtime/\`  Tests: \`$PACKAGE_ID.Tests/\`
 
 MIT © $YEAR $AUTHOR
 README
+
+# mkdocs configuration for GitHub Pages
+cat > mkdocs.yml <<MKDOCS
+site_name: $DISPLAY_NAME
+site_description: $DISPLAY_NAME Unity Package
+docs_dir: Documentation~
+repo_url: https://github.com/$GH_OWNER/$PACKAGE_ID
+repo_name: $GH_OWNER/$PACKAGE_ID
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+  features:
+    - navigation.tabs
+    - navigation.instant
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick Start: quick-start.md
+  - API Reference: api.md
+  - Release Notes: release-notes.md
+MKDOCS
+echo "  ${GREEN}✓${RESET} mkdocs.yml created"
 
 # Install git hooks if git is available
 if git rev-parse --git-dir >/dev/null 2>&1 && [ -d "scripts/hooks" ]; then

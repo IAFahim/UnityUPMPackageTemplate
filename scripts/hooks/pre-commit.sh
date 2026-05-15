@@ -10,9 +10,9 @@ if git diff --cached --name-only | grep -qiE 'Unity\.Mathematics.*\.dll$'; then
     exit 1
 fi
 
-# 2. No placeholder tokens in staged .cs/.json/.asmdef files
+# 2. No placeholder tokens in staged .cs/.json/.asmdef files (ignore template placeholder files)
 STAGED=$(git diff --cached --name-only --diff-filter=ACM \
-    | grep -E '\.(cs|json|asmdef)$' || true)
+    | grep -E '\.(cs|json|asmdef)$' | grep -v '__PACKAGE__' | grep -v '__PLACEHOLDER__' || true)
 if [ -n "$STAGED" ]; then
     for f in $STAGED; do
         if grep -q '__[A-Z_]\{2,\}__' "$f" 2>/dev/null; then
