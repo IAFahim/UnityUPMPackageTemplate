@@ -68,5 +68,11 @@ echo "    ${DIM}git add -A && git commit -m 'chore: release $NEW_VERSION'${RESET
 echo "    ${DIM}git tag v$NEW_VERSION && git push origin main --tags${RESET}"
 echo ""
 
-echo "  ${DIM}Drafting changelog...${RESET}"
-bash scripts/changelog-draft.sh "$NEW_VERSION" --apply 2>/dev/null || true
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    echo "  ${DIM}Generating AI changelog...${RESET}"
+    bash scripts/ai-changelog.sh "$NEW_VERSION" --apply 2>/dev/null || \
+        bash scripts/changelog-draft.sh "$NEW_VERSION" --apply 2>/dev/null || true
+else
+    echo "  ${DIM}Drafting changelog...${RESET}"
+    bash scripts/changelog-draft.sh "$NEW_VERSION" --apply 2>/dev/null || true
+fi
