@@ -27,6 +27,17 @@ jobs:
       - name: Prepare generated package test directory
         run: bash scripts/stage-unity-package-test.sh .gameci/package-under-test
 
+      - name: Validate Unity version compatibility
+        run: |
+          MIN=$(python3 -c "import json; print(json.load(open('.gameci/package-under-test/package.json')).get('unity','2022.3'))")
+          TEST="${{ matrix.unity }}"
+          # Compare major.minor
+          MIN_MAJOR=$(echo $MIN | cut -d. -f1)
+          TEST_MAJOR=$(echo $TEST | cut -d. -f1)
+          if [ "$TEST_MAJOR" -lt "$MIN_MAJOR" ]; then
+              echo "⚠ Testing Unity $TEST but package requires $MIN+"
+          fi
+
       - name: Run Unity package tests
         id: unity-tests
         uses: game-ci/unity-test-runner@v4
