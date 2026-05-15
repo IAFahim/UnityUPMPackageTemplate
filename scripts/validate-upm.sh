@@ -93,7 +93,7 @@ DLLS=$(find . -path '*/bin' -prune -o -path '*/obj' -prune -o -path './.git' -pr
 
 # No bin/obj/artifacts tracked by git
 if git rev-parse --git-dir >/dev/null 2>&1; then
-    TRACKED_BUILD=$(git ls-files bin/ obj/ artifacts/ 2>/dev/null || true)
+    TRACKED_BUILD=$(git ls-files bin/ obj/ artifacts/ 2>/dev/null | grep -v 'artifacts/api/baseline.txt' || true)
     [ -z "$TRACKED_BUILD" ] && ok "No build outputs tracked by git" || fail "Build outputs tracked: $TRACKED_BUILD"
 fi
 

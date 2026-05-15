@@ -15,12 +15,12 @@ cp -R "$ROOT" "$TMP/template"
 cd "$TMP/template"
 rm -rf .git .gameci artifacts bin obj
 
-bash setup.sh com.selftest.unitypackage "Unity Package Self Test" "CI Bot" "SelfTest.UnityPackage"
+bash setup.sh __PACKAGE__ "Unity Package Self Test" "__AUTHOR__" "__NAMESPACE__"
 
 # GameCI packageMode: true expects a folder named 'Tests' at the package root
-if [ -d "com.selftest.unitypackage.Tests" ]; then
-    echo "Renaming com.selftest.unitypackage.Tests to Tests"
-    mv com.selftest.unitypackage.Tests Tests
+if [ -d "__PACKAGE__.Tests" ]; then
+    echo "Renaming __PACKAGE__.Tests to Tests"
+    mv __PACKAGE__.Tests Tests
 fi
 
 # Remove dev-only folders before Unity sees the package.

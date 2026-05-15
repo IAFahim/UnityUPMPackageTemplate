@@ -11,7 +11,7 @@
 # └───────────────────────────────────────────────────────────────────┘
 set -euo pipefail
 
-TEMPLATE_REPO="https://github.com/IAFahim/UnityUPMPackageTemplate.git"
+TEMPLATE_REPO="https://github.com/__AUTHOR__/UnityUPMPackageTemplate.git"
 FOLDER_NAME=""
 FORCE_YES=false
 MINIMAL=false
@@ -303,13 +303,22 @@ Add to \`Packages/manifest.json\`:
 
 ## Dev
 
-\`\`\`bash
+```bash
 dotnet restore
 dotnet test -c Release
-\`\`\`
+```
+
+## Release
+
+```bash
+bash scripts/version.sh 0.2.0           # bump version + changelog
+bash scripts/pre-release.sh 0.2.0       # verify everything is ready
+git tag v0.2.0 && git push --tags       # trigger release CI
+```
 
 MIT © $YEAR $AUTHOR
 README
+
 
 # ── Finalize ────────────────────────────────────────────────────
 

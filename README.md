@@ -3,13 +3,13 @@
 > **One command. Your Unity package. Done.**
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/IAFahim/UnityUPMPackageTemplate/main/install.sh)
+bash <(curl -sL https://raw.githubusercontent.com/__AUTHOR__/UnityUPMPackageTemplate/main/install.sh)
 ```
 
 Or clone and run locally:
 
 ```bash
-git clone https://github.com/IAFahim/UnityUPMPackageTemplate.git my-package
+git clone https://github.com/__AUTHOR__/UnityUPMPackageTemplate.git my-package
 cd my-package && ./setup.sh
 ```
 

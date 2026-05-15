@@ -32,7 +32,7 @@ cd "$TEST_DIR/pkg"
 rm -rf .git
 
 # Run setup with CLI args (non-interactive)
-bash setup.sh com.selftest.verify "Self Test" "CI Bot" "SelfTest.Verify" 2>&1 | tail -3
+bash setup.sh com.selftest.verify "Self Test" "__AUTHOR__" "SelfTest.Verify" 2>&1 | tail -3
 
 # ── Verify structure ────────────────────────────────────────────
 

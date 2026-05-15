@@ -264,10 +264,19 @@ bash scripts/smoke.sh
 
 Git hooks are pre-installed. Re-install after cloning: \`bash scripts/install-hooks.sh\`
 
-Source: \`$PACKAGE_ID.Runtime/\`  Tests: \`$PACKAGE_ID.Tests/\`
+Source: `$PACKAGE_ID.Runtime/`  Tests: `$PACKAGE_ID.Tests/`
+
+## Release
+
+```bash
+bash scripts/version.sh 0.2.0           # bump version + changelog
+bash scripts/pre-release.sh 0.2.0       # verify everything is ready
+git tag v0.2.0 && git push --tags       # trigger release CI
+```
 
 MIT © $YEAR $AUTHOR
 README
+
 
 # mkdocs configuration for GitHub Pages
 cat > mkdocs.yml <<MKDOCS

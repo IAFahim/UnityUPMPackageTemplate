@@ -8,7 +8,7 @@ set -euo pipefail
 DRY_RUN=false
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=true
 
-TEMPLATE_URL="https://github.com/IAFahim/UnityUPMPackageTemplate.git"
+TEMPLATE_URL="https://github.com/__AUTHOR__/UnityUPMPackageTemplate.git"
 TMP=$(mktemp -d)
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
