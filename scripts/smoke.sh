@@ -18,11 +18,20 @@ echo "  ${GREEN}✓${RESET} dotnet restore"
 if ! dotnet build *.slnx -c Release --no-restore >/dev/null 2>&1; then echo "  ${RED}✗${RESET} Build failed"; exit 1; fi
 echo "  ${GREEN}✓${RESET} dotnet build"
 
-if ! dotnet test *.slnx -c Release --no-build --verbosity quiet 2>&1 | grep -q "Passed!"; then
+if ! dotnet test *.slnx -c Release --no-build --verbosity quiet >/dev/null 2>&1; then
     echo "  ${RED}✗${RESET} Tests failed"
     exit 1
 fi
 echo "  ${GREEN}✓${RESET} dotnet test"
+
+# ── API Diff ────────────────────────────────────────────────────
+
+if bash scripts/api-diff.sh 2>/dev/null; then
+    echo "  ${GREEN}✓${RESET} API surface (no breaking changes)"
+else
+    YELLOW=$'\033[33m'
+    echo "  ${YELLOW}⚠${RESET} API surface changed — see artifacts/api/"
+fi
 
 # ── Validations ─────────────────────────────────────────────────
 

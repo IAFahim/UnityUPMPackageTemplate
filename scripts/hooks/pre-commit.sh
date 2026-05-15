@@ -23,7 +23,7 @@ if [ -n "$STAGED" ]; then
 fi
 
 # 3. No bin/obj/artifacts staged
-FORBIDDEN=$(git diff --cached --name-only | grep -E '^(bin|obj|artifacts)/' || true)
+FORBIDDEN=$(git diff --cached --name-only | grep -E '^(bin|obj|artifacts)/' | grep -v 'artifacts/api/baseline.txt' || true)
 if [ -n "$FORBIDDEN" ]; then
     echo "BLOCKED: build output staged: $FORBIDDEN"
     exit 1

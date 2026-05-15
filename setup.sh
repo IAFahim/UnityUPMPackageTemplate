@@ -263,6 +263,12 @@ if git rev-parse --git-dir >/dev/null 2>&1 && [ -d "scripts/hooks" ]; then
     echo "  ${GREEN}✓${RESET} Git hooks installed"
 fi
 
+# Create initial API baseline
+if dotnet build "$PACKAGE_ID.slnx" -c Release --nologo -v quiet >/dev/null 2>&1; then
+    bash scripts/api-surface.sh artifacts/api/baseline.txt 2>/dev/null || true
+    echo "  ${GREEN}✓${RESET} API baseline created"
+fi
+
 echo ""
 echo "  Done."
 echo ""

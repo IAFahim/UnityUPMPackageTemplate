@@ -27,6 +27,9 @@ jobs:
       - name: Test
         run: dotnet test *.slnx -c Release --no-build
 
+      - name: API surface diff
+        run: bash scripts/api-diff.sh
+
       - name: Verify no Unity.Mathematics DLL leak
         run: |
           if git ls-files | grep -qiE 'Unity\.Mathematics.*\.dll$'; then
