@@ -243,12 +243,21 @@ Or Unity → Package Manager → Add from git URL.
 \`\`\`bash
 dotnet restore
 dotnet test -c Release
+bash scripts/smoke.sh
 \`\`\`
+
+Git hooks are pre-installed. Re-install after cloning: \`bash scripts/install-hooks.sh\`
 
 Source: \`$PACKAGE_ID.Runtime/\`  Tests: \`$PACKAGE_ID.Tests/\`
 
 MIT © $YEAR $AUTHOR
 README
+
+# Install git hooks if git is available
+if git rev-parse --git-dir >/dev/null 2>&1 && [ -d "scripts/hooks" ]; then
+    bash scripts/install-hooks.sh >/dev/null 2>&1 || true
+    echo "  ${GREEN}✓${RESET} Git hooks installed"
+fi
 
 echo ""
 echo "  Done."
