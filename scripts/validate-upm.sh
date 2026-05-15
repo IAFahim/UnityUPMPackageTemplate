@@ -15,6 +15,11 @@ echo ""
 echo "  ${BOLD}Validating UPM package...${RESET}"
 echo ""
 
+IS_TEMPLATE=0
+if [ -f "__PACKAGE__.Runtime/__PLACEHOLDER__.cs" ]; then
+    IS_TEMPLATE=1
+fi
+
 # ── Required files ──────────────────────────────────────────────
 
 for f in package.json README.md LICENSE; do
@@ -39,7 +44,9 @@ if [ -f "package.json" ]; then
     # Validate name format
     PKG_NAME=$(python3 -c "import json; print(json.load(open('package.json'))['name'])" 2>/dev/null || true)
     if [ -n "$PKG_NAME" ]; then
-        if [[ "$PKG_NAME" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9_-]*){2,}$ ]]; then
+        if [ "$IS_TEMPLATE" -eq 1 ]; then
+            ok "package name (template mode)"
+        elif [[ "$PKG_NAME" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9_-]*){2,}$ ]]; then
             ok "package name is valid reverse-DNS"
         else
             fail "package name '$PKG_NAME' is not valid reverse-DNS"
@@ -84,10 +91,14 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
 fi
 
 # No placeholders
-LEFTOVER=$(grep -rl '__[A-Z_]*__' \
-    --include='*.cs' --include='*.json' --include='*.asmdef' \
-    . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' | grep -v '.github/' || true)
-[ -z "$LEFTOVER" ] && ok "No unreplaced placeholders" || fail "Placeholders in: $LEFTOVER"
+if [ "$IS_TEMPLATE" -eq 1 ]; then
+    ok "No placeholders check (template mode)"
+else
+    LEFTOVER=$(grep -rl '__[A-Z_]*__' \
+        --include='*.cs' --include='*.json' --include='*.asmdef' \
+        . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' | grep -v '.github/' || true)
+    [ -z "$LEFTOVER" ] && ok "No unreplaced placeholders" || fail "Placeholders in: $LEFTOVER"
+fi
 
 # No template artifacts
 for f in setup.sh install.sh AGENTS.md; do

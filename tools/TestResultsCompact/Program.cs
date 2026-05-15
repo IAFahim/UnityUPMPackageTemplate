@@ -4,6 +4,7 @@ namespace TestResultsCompact;
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 
 public static class Program

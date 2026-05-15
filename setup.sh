@@ -30,11 +30,18 @@ escape_sed() {
 }
 
 detect_author()   { git config --global user.name 2>/dev/null || gh api user -q .login 2>/dev/null || echo ""; }
+detect_email()    { git config --global user.email 2>/dev/null || echo ""; }
 detect_gh_owner() { gh api user -q .login 2>/dev/null || echo ""; }
 
 # ── Gather inputs ───────────────────────────────────────────────
 
+FORCE_YES=false
+if [[ "$*" == *"--yes"* ]]; then
+    FORCE_YES=true
+fi
+
 DEFAULT_AUTHOR=$(detect_author)
+DEFAULT_EMAIL=$(detect_email)
 DEFAULT_GH=$(detect_gh_owner)
 DERIVED_ID="" DERIVED_NS="" DERIVED_DISPLAY=""
 
@@ -44,13 +51,27 @@ if [[ "$FOLDER" =~ ^[a-z]+(\.[a-z0-9_-]+){2,}$ ]]; then
     DERIVED_ID="$FOLDER"
     DERIVED_NS=$(package_to_namespace "$FOLDER")
     DERIVED_DISPLAY=$(pascal "$(echo "$FOLDER" | awk -F'.' '{print $NF}')")
+elif [ -n "$DEFAULT_GH" ]; then
+    CLEAN_OWNER=$(echo "$DEFAULT_GH" | tr '[:upper:]' '[:lower:]' | tr -d ' ')
+    CLEAN_FOLDER=$(echo "$FOLDER" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+    DERIVED_ID="com.$CLEAN_OWNER.$CLEAN_FOLDER"
+    DERIVED_NS=$(package_to_namespace "$DERIVED_ID")
+    DERIVED_DISPLAY=$(pascal "$FOLDER")
 fi
 
-if [ $# -ge 4 ]; then
+if [ "$FORCE_YES" = true ]; then
+    PACKAGE_ID="${DERIVED_ID:-com.example.package}"
+    DISPLAY_NAME="${DERIVED_DISPLAY:-Example Package}"
+    AUTHOR="${DEFAULT_AUTHOR:-Example Author}"
+    NAMESPACE="${DERIVED_NS:-Example.Package}"
+    LICENSE="MIT"
+elif [ $# -ge 4 ]; then
     PACKAGE_ID="$1"; DISPLAY_NAME="$2"; AUTHOR="$3"; NAMESPACE="$4"
+    LICENSE="MIT"
 elif [ $# -ge 3 ]; then
     PACKAGE_ID="$1"; DISPLAY_NAME="$2"; AUTHOR="$3"
     NAMESPACE=$(package_to_namespace "$PACKAGE_ID")
+    LICENSE="MIT"
 else
     echo ""
 
@@ -83,11 +104,16 @@ else
     read -rp "  C# namespace [$AUTO_NS]: " NAMESPACE
     NAMESPACE="${NAMESPACE:-$AUTO_NS}"
 
+    # License
+    read -rp "  License [MIT]: " LICENSE
+    LICENSE="${LICENSE:-MIT}"
+
     echo ""
     echo "  Package:   $PACKAGE_ID"
     echo "  Display:   $DISPLAY_NAME"
     echo "  Author:    $AUTHOR"
     echo "  Namespace: $NAMESPACE"
+    echo "  License:   $LICENSE"
     echo ""
     read -rp "  Create? [Y/n] " CONFIRM
     [[ "$CONFIRM" =~ ^[Nn] ]] && exit 1
@@ -116,6 +142,7 @@ S_DISPLAY=$(escape_sed "$DISPLAY_NAME")
 S_AUTHOR=$(escape_sed "$AUTHOR")
 S_YEAR=$(escape_sed "$YEAR")
 S_UNITY=$(escape_sed "$UNITY_MIN")
+S_LICENSE=$(escape_sed "$LICENSE")
 echo ""
 
 # ── Rename folders ──────────────────────────────────────────────
@@ -123,6 +150,7 @@ echo ""
 echo "  Setting up..."
 [ -d "__PACKAGE__.Runtime" ]          && mv "__PACKAGE__.Runtime"          "$PACKAGE_ID.Runtime"
 [ -d "__PACKAGE__.Tests" ]            && mv "__PACKAGE__.Tests"            "$PACKAGE_ID.Tests"
+[ -d "__PACKAGE__.Editor" ]           && mv "__PACKAGE__.Editor"           "$PACKAGE_ID.Editor"
 [ -d "src/__PACKAGE__" ]              && mv "src/__PACKAGE__"              "src/$PACKAGE_ID"
 [ -d "tests/__PACKAGE__.Tests" ]      && mv "tests/__PACKAGE__.Tests"      "tests/$PACKAGE_ID.Tests"
 [ -d "benchmarks/__PACKAGE__.Benchmarks" ] && mv "benchmarks/__PACKAGE__.Benchmarks" "benchmarks/$PACKAGE_ID.Benchmarks"
@@ -133,7 +161,13 @@ echo "  Setting up..."
 find . -name "__PACKAGE__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
     dir=$(dirname "$f"); base=$(basename "$f")
     newname=$(echo "$base" | sed "s/__PACKAGE__/$PACKAGE_ID/g")
-    [ "$base" != "$newname" ] && mv "$f" "$dir/$newname"
+    if [ "$base" != "$newname" ]; then
+        if [ -e "$dir/$newname" ]; then
+            rm -f "$f"
+        else
+            mv "$f" "$dir/$newname"
+        fi
+    fi
 done
 
 # ── Personalize ─────────────────────────────────────────────────
@@ -150,19 +184,25 @@ find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*
     -e "s/__AUTHOR__/$S_AUTHOR/g" \
     -e "s/__YEAR__/$S_YEAR/g" \
     -e "s/__UNITY_MIN__/$S_UNITY/g" \
+    -e "s/MIT/$S_LICENSE/g" \
     {} +
 
 # ── Clean placeholders ──────────────────────────────────────────
 
 find . -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
     dir=$(dirname "$f"); base=$(basename "$f")
-    mv "$f" "$dir/$(echo "$base" | sed 's/__PLACEHOLDER__/Template/')"
+    newname=$(echo "$base" | sed 's/__PLACEHOLDER__/Template/')
+    if [ -e "$dir/$newname" ]; then
+        rm -f "$f"
+    else
+        mv "$f" "$dir/$newname"
+    fi
 done
 
 # ── Erase all traces ────────────────────────────────────────────
 
-chmod +x scripts/smoke.sh
-rm -f AGENTS.md CHANGELOG.md install.sh
+chmod +x scripts/*.sh
+rm -f AGENTS.md install.sh
 # Keep .github/ — CI is essential
 rm -- "$0"
 

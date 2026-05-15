@@ -52,6 +52,7 @@ check() {
 
 check exists "com.selftest.verify.Runtime"
 check exists "com.selftest.verify.Tests"
+check exists "com.selftest.verify.Editor"
 check exists "package.json"
 check exists "README.md"
 check exists "LICENSE"

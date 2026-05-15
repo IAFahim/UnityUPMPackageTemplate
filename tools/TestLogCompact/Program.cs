@@ -3,6 +3,7 @@
 namespace TestLogCompact;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -36,7 +37,7 @@ public static class Program
         var lines = File.ReadAllLines(input);
         var errors = new List<string>();
         var warnings = new List<string>();
-        bool inError = false, inWarning = false;
+        bool inError = false;
         string? currentBlock = null;
 
         foreach (var line in lines)
@@ -45,13 +46,10 @@ public static class Program
             if (line.Contains("error CS") || line.Contains("CompilerOutput"))
             {
                 inError = true;
-                inWarning = false;
                 currentBlock = line.Trim();
             }
             else if (line.Contains("warning CS"))
             {
-                inWarning = true;
-                inError = false;
                 if (warnings.Count < 20)
                     warnings.Add(line.Trim());
             }

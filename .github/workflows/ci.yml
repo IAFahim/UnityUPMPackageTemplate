@@ -60,10 +60,13 @@ jobs:
           echo "OK: No unreplaced placeholders."
 
       - name: Validate UPM structure
-        run: bash scripts/validate-upm.sh || true
+        run: bash scripts/validate-upm.sh
+
+      - name: Verify metadata integrity
+        run: bash scripts/verify-meta.sh
 
       - name: Check package size
-        run: bash scripts/check-size.sh 500 || true
+        run: bash scripts/check-size.sh 500
 
       - name: Template self-test
         run: bash scripts/test-template.sh

@@ -75,6 +75,11 @@ fi
 
 # ── Package structure ───────────────────────────────────────────
 
+IS_TEMPLATE=0
+if [ -f "__PACKAGE__.Runtime/__PLACEHOLDER__.cs" ]; then
+    IS_TEMPLATE=1
+fi
+
 if [ -f "package.json" ]; then
     ok "package.json exists"
 
@@ -89,7 +94,7 @@ if [ -f "package.json" ]; then
     [ -n "$PKG_LICENSE" ] && ok "license: $PKG_LICENSE" || warn "license field missing"
 
     # Validate reverse-DNS
-    if [ -n "$PKG_NAME" ] && [[ ! "$PKG_NAME" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9_-]*){2,}$ ]]; then
+    if [ "$IS_TEMPLATE" -eq 0 ] && [ -n "$PKG_NAME" ] && [[ ! "$PKG_NAME" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9_-]*){2,}$ ]]; then
         fail "package name '$PKG_NAME' is not valid reverse-DNS"
     fi
 else
@@ -196,13 +201,17 @@ fi
 
 # ── Placeholder check ──────────────────────────────────────────
 
-LEFTOVER=$(grep -rl '__[A-Z_]*__' \
-    --include='*.cs' --include='*.json' --include='*.asmdef' \
-    . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' | grep -v '.github/' || true)
-if [ -z "$LEFTOVER" ]; then
-    ok "No unreplaced placeholders"
+if [ "$IS_TEMPLATE" -eq 1 ]; then
+    ok "Skipping placeholder check (template repo)"
 else
-    fail "Unreplaced placeholders: $LEFTOVER"
+    LEFTOVER=$(grep -rl '__[A-Z_]*__' \
+        --include='*.cs' --include='*.json' --include='*.asmdef' \
+        . 2>/dev/null | grep -v '/obj/' | grep -v '/bin/' | grep -v '.github/' || true)
+    if [ -z "$LEFTOVER" ]; then
+        ok "No unreplaced placeholders"
+    else
+        fail "Unreplaced placeholders: $LEFTOVER"
+    fi
 fi
 
 # ── Forbidden files ─────────────────────────────────────────────

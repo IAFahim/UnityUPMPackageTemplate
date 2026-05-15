@@ -1,0 +1,35 @@
+name: Bug report
+description: Create a report to help us improve
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please provide as much detail as possible.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us what you expected to happen
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+  - type: input
+    id: unity-version
+    attributes:
+      label: Unity Version
+      placeholder: e.g. 2022.3.60f1
+  - type: input
+    id: package-version
+    attributes:
+      label: Package Version
+      placeholder: e.g. 0.1.0
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Steps
+      description: How can we reproduce this?
+      placeholder: |
+        1. Open scene ...
+        2. Click button ...
+        3. Error appears ...
