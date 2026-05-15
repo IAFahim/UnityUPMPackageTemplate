@@ -279,10 +279,14 @@ fi
 
 # Clean README
 BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"
+BADGE_LICENSE="https://img.shields.io/github/license/$GH_OWNER/$PACKAGE_ID"
+BADGE_UNITY="https://img.shields.io/badge/Unity-2022.3%2B-black?logo=unity"
 cat > README.md <<README
 # $DISPLAY_NAME
 
 [![CI]($BADGE_URL)](https://github.com/$GH_OWNER/$PACKAGE_ID/actions)
+[![License]($BADGE_LICENSE)](LICENSE)
+[![Unity]($BADGE_UNITY)](https://unity.com)
 
 > $DISPLAY_NAME
 
@@ -301,20 +305,43 @@ Add to \`Packages/manifest.json\`:
 "$PACKAGE_ID": "https://github.com/$GH_OWNER/$PACKAGE_ID.git"
 \`\`\`
 
+Or Unity → Package Manager → Add from git URL.
+
+## Where code lives
+
+| What | Where |
+|------|-------|
+| Runtime types | \`$PACKAGE_ID.Runtime/\` |
+| Tests | \`$PACKAGE_ID.Tests/\` |
+| Editor code | \`$PACKAGE_ID.Editor/\` |
+| Samples | \`Samples~/\` |
+
+Write your code in Runtime/. Tests in Tests/. Both Unity and dotnet compile the same files.
+
 ## Dev
 
-```bash
+\`\`\`bash
 dotnet restore
 dotnet test -c Release
-```
+bash scripts/smoke.sh
+\`\`\`
+
+## Scripts
+
+| Command | What it does |
+|---------|-------------|
+| \`bash scripts/smoke.sh\` | Build + test + validate |
+| \`bash scripts/doctor.sh\` | Full diagnostic (28+ checks) |
+| \`bash scripts/version.sh 0.2.0\` | Bump version + changelog |
+| \`bash scripts/pre-release.sh 0.2.0\` | Pre-release checklist |
 
 ## Release
 
-```bash
+\`\`\`bash
 bash scripts/version.sh 0.2.0           # bump version + changelog
 bash scripts/pre-release.sh 0.2.0       # verify everything is ready
 git tag v0.2.0 && git push --tags       # trigger release CI
-```
+\`\`\`
 
 MIT © $YEAR $AUTHOR
 README

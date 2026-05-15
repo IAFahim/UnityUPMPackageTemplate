@@ -274,6 +274,18 @@ Add to \`Packages/manifest.json\`:
 
 Or Unity → Package Manager → Add from git URL.
 
+## Where code lives
+
+| What | Where |
+|------|-------|
+| Runtime types | \`$PACKAGE_ID.Runtime/\` |
+| Tests | \`$PACKAGE_ID.Tests/\` |
+| Editor code | \`$PACKAGE_ID.Editor/\` |
+| Samples | \`Samples~/\` |
+| Docs | \`Documentation~/\` |
+
+Write your code in Runtime/. Tests in Tests/. Both Unity and dotnet compile the same files.
+
 ## Dev
 
 \`\`\`bash
@@ -284,15 +296,22 @@ bash scripts/smoke.sh
 
 Git hooks are pre-installed. Re-install after cloning: \`bash scripts/install-hooks.sh\`
 
-Source: `$PACKAGE_ID.Runtime/`  Tests: `$PACKAGE_ID.Tests/`
+## Scripts
+
+| Command | What it does |
+|---------|-------------|
+| \`bash scripts/smoke.sh\` | Build + test + validate |
+| \`bash scripts/doctor.sh\` | Full diagnostic (28+ checks) |
+| \`bash scripts/version.sh 0.2.0\` | Bump version + changelog |
+| \`bash scripts/pre-release.sh 0.2.0\` | Pre-release checklist |
 
 ## Release
 
-```bash
+\`\`\`bash
 bash scripts/version.sh 0.2.0           # bump version + changelog
 bash scripts/pre-release.sh 0.2.0       # verify everything is ready
 git tag v0.2.0 && git push --tags       # trigger release CI
-```
+\`\`\`
 
 MIT © $YEAR $AUTHOR
 README
