@@ -15,7 +15,7 @@ cp -R "$ROOT" "$TMP/template"
 cd "$TMP/template"
 rm -rf .git .gameci artifacts bin obj
 
-bash setup.sh __PACKAGE__ "Unity Package Self Test" "__AUTHOR__" "__NAMESPACE__"
+bash setup.sh com.gameci.selftest "Unity Package Self Test" "GameCI" "GameCI.SelfTest"
 
 # GameCI packageMode: true expects a folder named 'Tests' at the package root
 if [ -d "__PACKAGE__.Tests" ]; then

@@ -32,7 +32,7 @@ cd "$TEST_DIR/pkg"
 rm -rf .git
 
 # Run setup with CLI args (non-interactive)
-bash setup.sh com.selftest.verify "Self Test" "__AUTHOR__" "SelfTest.Verify" 2>&1 | tail -3
+bash setup.sh com.selftest.verify "Self Test" "SelfTestAuthor" "SelfTest.Verify" 2>&1 | tail -3
 
 # ── Verify structure ────────────────────────────────────────────
 
@@ -67,7 +67,7 @@ check missing "setup.sh"
 check missing "install.sh"
 check missing "AGENTS.md"
 check missing "CHANGELOG.md"
-check missing "TODO_GOD_TIER_UNITY_PACKAGE_TEMPLATE.md"
+check missing "TODO-FEATURES.md"
 
 # ── Verify no placeholders ─────────────────────────────────────
 

@@ -28,11 +28,6 @@ run_gc() {
         return $?
     fi
 
-    if [ -f "/home/i/Github/GC/src/GC.csproj" ]; then
-        dotnet run --project "/home/i/Github/GC/src/GC.csproj" -c Release -- --output "$out"
-        return $?
-    fi
-
     return 1
 }
 
@@ -119,8 +114,6 @@ fi
 
 if command -v gc >/dev/null 2>&1; then
     gc --brain --compress --output "$COMPACT" 2>/dev/null || manual_compact "$COMPACT"
-elif [ -f "/home/i/Github/GC/src/GC.csproj" ]; then
-    dotnet run --project "/home/i/Github/GC/src/GC.csproj" -c Release -- --brain --compress --output "$COMPACT" 2>/dev/null || manual_compact "$COMPACT"
 else
     manual_compact "$COMPACT"
 fi

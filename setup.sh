@@ -71,13 +71,16 @@ if [ "$FORCE_YES" = true ]; then
     AUTHOR="${DEFAULT_AUTHOR:-Example Author}"
     NAMESPACE="${DERIVED_NS:-Example.Package}"
     LICENSE="MIT"
+    SAMPLES="3"
 elif [ $# -ge 4 ]; then
     PACKAGE_ID="$1"; DISPLAY_NAME="$2"; AUTHOR="$3"; NAMESPACE="$4"
     LICENSE="MIT"
+    SAMPLES="3"
 elif [ $# -ge 3 ]; then
     PACKAGE_ID="$1"; DISPLAY_NAME="$2"; AUTHOR="$3"
     NAMESPACE=$(package_to_namespace "$PACKAGE_ID")
     LICENSE="MIT"
+    SAMPLES="3"
 else
     echo ""
 
@@ -113,6 +116,14 @@ else
     # License
     read -rp "  License [MIT]: " LICENSE
     LICENSE="${LICENSE:-MIT}"
+
+    echo ""
+    echo "  Create samples?"
+    echo "  [1] None"
+    echo "  [2] QuickStart scene"
+    echo "  [3] QuickStart + UI Toolkit demo"
+    read -rp "  Selection [3]: " SAMPLES
+    SAMPLES="${SAMPLES:-3}"
 
     echo ""
     echo "  Package:   $PACKAGE_ID"
@@ -205,12 +216,21 @@ find . -type f -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*
     fi
 done
 
+# ── Samples ─────────────────────────────────────────────────────
+if [ "$SAMPLES" = "1" ]; then
+    rm -rf Samples~
+    python3 -c "import json; d=json.load(open('package.json')); d.pop('samples',None); json.dump(d,open('package.json','w'),indent=2)" 2>/dev/null || true
+elif [ "$SAMPLES" = "2" ]; then
+    rm -rf Samples~/UIToolkitDemo
+    python3 -c "import json; d=json.load(open('package.json')); d['samples']=[s for s in d['samples'] if 'QuickStart' in s['path']]; json.dump(d,open('package.json','w'),indent=2)" 2>/dev/null || true
+fi
+
 # ── Erase all traces ────────────────────────────────────────────
 
 chmod +x scripts/*.sh
 
 # Remove template-only root files from generated packages.
-rm -f AGENTS.md install.sh CHANGELOG.md TODO_GOD_TIER_UNITY_PACKAGE_TEMPLATE.md
+rm -f AGENTS.md install.sh CHANGELOG.md TODO-FEATURES.md
 
 # Remove template-only test scripts from generated packages.
 rm -f scripts/test-template.sh scripts/test-cli.sh

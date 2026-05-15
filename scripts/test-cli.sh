@@ -168,7 +168,7 @@ cd "$TEST_ROOT/basic/pkg"
 
 bash scripts/doctor.sh >/dev/null 2>&1 && pass "scripts: doctor.sh" || pass "scripts: doctor.sh (warnings ok)"
 bash scripts/validate-upm.sh 2>&1 | grep -q "Package is valid" && pass "scripts: validate-upm.sh" || fail "scripts: validate-upm.sh"
-bash scripts/smoke.sh 2>&1 | grep -qE "(OK:|Passed!)" && pass "scripts: smoke.sh" || fail "scripts: smoke.sh"
+bash scripts/smoke.sh 2>&1 | grep -qE '(OK:|Passed!|Smoke test passed)' && pass "scripts: smoke.sh" || fail "scripts: smoke.sh"
 bash scripts/version.sh 0.2.0 >/dev/null 2>&1
 assert_contains "scripts: version bump" "$TEST_ROOT/basic/pkg/package.json" '"version": "0.2.0"'
 bash scripts/verify-meta.sh >/dev/null 2>&1 && pass "scripts: verify-meta.sh" || pass "scripts: verify-meta.sh (no meta)"

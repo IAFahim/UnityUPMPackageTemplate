@@ -12,6 +12,7 @@ echo "" >> "$OUT"
 echo "| Unity Version | Status | Notes |" >> "$OUT"
 echo "|---|---|---|" >> "$OUT"
 
+UNITY_TEST_VERSIONS=()
 source scripts/unity-versions.sh 2>/dev/null || true
 
 for ver in "${UNITY_TEST_VERSIONS[@]}"; do
