@@ -15,8 +15,8 @@ fi
 dotnet build "$SLNX" -c Release --nologo -v quiet >/dev/null 2>&1
 
 # Find the runtime DLL
-DLL=$(find . -path '*/Release/netstandard2.1/*.Runtime.dll' \
-    ! -path '*/obj/*' 2>/dev/null | head -1)
+DLL=$(find . -path '*/Release/netstandard2.1/*.dll' \
+    ! -path '*/obj/*' ! -name 'Unity.Mathematics*' ! -name 'mscorlib*' ! -name 'System*' ! -name 'NETStandard*' 2>/dev/null | head -1)
 
 if [ -z "$DLL" ]; then
     echo "Runtime DLL not found after build." && exit 1
