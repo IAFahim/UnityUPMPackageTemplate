@@ -38,6 +38,12 @@ jobs:
       - name: Validate package
         run: bash scripts/validate-upm.sh
 
+      - name: Run benchmarks
+        run: bash scripts/bench.sh "*"
+
+      - name: Check for regressions
+        run: bash scripts/bench-compare.sh
+
       - name: Check package size
         run: bash scripts/check-size.sh 500
 
