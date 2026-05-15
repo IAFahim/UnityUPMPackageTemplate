@@ -77,6 +77,8 @@ my-package/
 │   └── tools/                        Build tools (meta validator, etc.)
 │
 ├── Documentation~/                 ← Package docs (MkDocs)
+├── SourceGenerator~/              ← Roslyn source generators (hidden from Unity)
+├── Plugins~/                      ← Runtime resources (hidden from Unity)
 ├── Skills~/                        ← AI agent skill files
 ├── Tools~/                         ← IDE snippets (Rider, VS Code)
 │
@@ -104,6 +106,8 @@ my-package/
 | Add a runtime test | `com.owner.pkg/Tests/` | Shared by Unity + dotnet CI |
 | Add an editor window | `com.owner.pkg/Editor/` | Editor-only platform |
 | Add a sample | `Samples~/MySample/` | Users import via Package Manager |
+| Add a source generator | `SourceGenerator~/` | Roslyn analyzer, outputs to SourceGenerators/ |
+| Add runtime resources | `Plugins~/` | Hidden from Unity import |
 | Add a benchmark | `Dev~/benchmarks/` | BenchmarkDotNet, dev-only |
 | Add docs | `Documentation~/` | MkDocs site |
 

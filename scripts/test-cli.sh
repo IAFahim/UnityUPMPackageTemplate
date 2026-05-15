@@ -101,6 +101,8 @@ done
 assert_exists "Template: __PLACEHOLDER__.cs"           "$TEMPLATE_ROOT/__PACKAGE__/Runtime/__PLACEHOLDER__.cs"
 assert_exists "Template: __PLACEHOLDER__.Tests.cs"      "$TEMPLATE_ROOT/__PACKAGE__/Tests/__PLACEHOLDER__.Tests.cs"
 assert_contains "Template: asmdef name"               "$TEMPLATE_ROOT/__PACKAGE__/Runtime/__PACKAGE__.asmdef" '"name": "__PACKAGE__"'
+assert_contains "Template: asmdef autoReferenced"       "$TEMPLATE_ROOT/__PACKAGE__/Runtime/__PACKAGE__.asmdef" '"autoReferenced": false'
+assert_contains "Template: asmdef allowUnsafeCode"      "$TEMPLATE_ROOT/__PACKAGE__/Runtime/__PACKAGE__.asmdef" '"allowUnsafeCode": true'
 
 # ═══════════════════════ SECTION 3: setup.sh basic ═══════════
 section "3. setup.sh — Basic"

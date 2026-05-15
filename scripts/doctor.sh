@@ -112,6 +112,14 @@ if [ -n "$RUNTIME_ASMDEF" ]; then
     else
         ok "Runtime asmdef noEngineReferences=false (UnityEngine available)"
     fi
+
+    # Check allowUnsafeCode
+    UNSAFE=$(python3 -c "import json; print(json.load(open('$RUNTIME_ASMDEF')).get('allowUnsafeCode', False))" 2>/dev/null || echo "False")
+    if [ "$UNSAFE" = "True" ]; then
+        ok "Runtime asmdef allowUnsafeCode=true"
+    else
+        warn "Runtime asmdef allowUnsafeCode=false — DOTS/Burst often needs unsafe"
+    fi
 else
     fail "No Runtime asmdef found"
 fi

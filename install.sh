@@ -272,7 +272,7 @@ chmod +x scripts/*.sh
 
 if [ "$MINIMAL" = true ]; then
     rm -f .github/workflows/unity-package-test.yml .github/workflows/unity-activation.yml .github/workflows/release.yml .github/workflows/ai-context.yml
-    rm -rf Samples~ Documentation~ Skills~ Dev~/benchmarks Dev~/tools Tools~
+    rm -rf Samples~ Documentation~ Skills~ Dev~/benchmarks Dev~/tools Tools~ SourceGenerator~ Plugins~
 fi
 
 # Clean README
@@ -313,6 +313,8 @@ Or Unity → Package Manager → Add from git URL.
 | Tests | \`$PACKAGE_ID/Tests/\` |
 | Editor code | \`$PACKAGE_ID/Editor/\` |
 | Samples | \`Samples~/\` |
+| Source generators | \`SourceGenerator~/\` |
+| Runtime resources | \`Plugins~/\` |
 
 Write your code in Runtime/. Tests in Tests/. Both Unity and dotnet compile the same files.
 

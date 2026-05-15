@@ -4,6 +4,7 @@
     <AssemblyName>__PACKAGE__</AssemblyName>
     <RootNamespace>__NAMESPACE__</RootNamespace>
     <IsPackable>true</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 

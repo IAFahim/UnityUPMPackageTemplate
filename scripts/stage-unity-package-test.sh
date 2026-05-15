@@ -33,6 +33,8 @@ rm -rf \
     benchmarks \
     tools \
     Skills~ \
+    SourceGenerator~ \
+    Plugins~ \
     .github \
     artifacts \
     bin \

@@ -280,6 +280,8 @@ Or Unity → Package Manager → Add from git URL.
 | Tests | \`$PACKAGE_ID/Tests/\` |
 | Editor code | \`$PACKAGE_ID/Editor/\` |
 | Samples | \`Samples~/\` |
+| Source generators | \`SourceGenerator~/\` |
+| Runtime resources | \`Plugins~/\` |
 | Docs | \`Documentation~/\` |
 
 Write your code in Runtime/. Tests in Tests/. Both Unity and dotnet compile the same files.
