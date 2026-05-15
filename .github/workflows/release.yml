@@ -44,6 +44,9 @@ jobs:
       - name: Check for regressions
         run: bash scripts/bench-compare.sh
 
+      - name: Audit dependencies (release gate)
+        run: bash scripts/audit-deps.sh
+
       - name: Check package size
         run: bash scripts/check-size.sh 500
 

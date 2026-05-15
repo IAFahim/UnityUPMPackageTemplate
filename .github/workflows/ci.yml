@@ -71,5 +71,9 @@ jobs:
       - name: Check package size
         run: bash scripts/check-size.sh 500
 
+      - name: Audit dependencies
+        run: bash scripts/audit-deps.sh
+        continue-on-error: true
+
       - name: Template self-test
         run: if [ -f scripts/test-template.sh ]; then bash scripts/test-template.sh; else echo "Skipped (not a template)"; fi
