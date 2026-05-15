@@ -5,13 +5,13 @@ This is a **Unity UPM package template** that compiles and tests outside Unity u
 
 ### Source layout
 - `__PACKAGE__.Runtime/` — Unity package source (single source of truth)
-- `src/__PACKAGE__/` — dotnet csproj that compiles `Runtime/**/*.cs` via `<Compile Include>`
-- `tests/__PACKAGE__.Tests/` — dotnet test project that compiles `Tests/**/*.cs`
-- `benchmarks/__PACKAGE__.Benchmarks/` — BenchmarkDotNet
+- `Dev~/src/__PACKAGE__/` — dotnet csproj that compiles `Runtime/**/*.cs` via `<Compile Include>`
+- `Dev~/tests/__PACKAGE__.Tests/` — dotnet test project that compiles `Tests/**/*.cs`
+- `Dev~/benchmarks/__PACKAGE__.Benchmarks/` — BenchmarkDotNet
 
 ### NuGet trick
-- `src/*.csproj`: `UnityMathematics` with `PrivateAssets="All"` — compile only, never ship
-- `tests/*.csproj`: `UnityMathematics.NoDeps` with `PrivateAssets="All"`
+- `Dev~/src/*.csproj`: `UnityMathematics` with `PrivateAssets="All"` — compile only, never ship
+- `Dev~/tests/*.csproj`: `UnityMathematics.NoDeps` with `PrivateAssets="All"`
 - Version centralized: `<UnityMathematicsVersion>` in `Directory.Build.props`
 
 ### Unity consumption
@@ -41,3 +41,8 @@ This is a **Unity UPM package template** that compiles and tests outside Unity u
 3. Keep asmdef references synced with package.json dependencies
 4. Run `bash scripts/smoke.sh` before final answer
 5. Use `escape_sed()` for all sed replacements
+
+## Core Mandates
+- **Template mode:** The raw template is not a valid Unity package until `setup.sh` has generated real `package.json` and `asmdef` values.
+- **CI Validation:** Unity package CI (GameCI) must test a generated package (staged via `scripts/stage-unity-package-test.sh`), not raw placeholders.
+- **Source Privacy:** Dev-only C# (tools, benchmarks, dotnet bridge) must be hidden from Unity import, under the `Dev~/` folder.

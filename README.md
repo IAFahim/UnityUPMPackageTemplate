@@ -22,10 +22,11 @@ my-package/
 │   └── *.Runtime.asmdef
 ├── com.owner.pkg.Tests/         ← Unity + CI tests
 │   └── Template.Tests.cs
-├── src/                          ← dotnet project → points at Runtime/
-├── tests/                        ← dotnet test project → points at Tests/
-├── benchmarks/                   ← BenchmarkDotNet
-├── package.json                  ← UPM manifest
+├── Dev~/
+│   ├── src/                        ← dotnet project → points at Runtime/
+│   ├── tests/                      ← dotnet test project → points at Tests/
+│   ├── benchmarks/                 ← BenchmarkDotNet
+│   └── tools/                      ← Build tools
 ├── Samples~/                     ← Unity importable samples
 │   ├── QuickStart/
 │   └── UIToolkitDemo/
@@ -41,11 +42,6 @@ my-package/
 │   ├── meta-files/
 │   ├── gameci/
 │   └── tests/
-├── tools/                        ← Build tools
-│   ├── TestLogCompact/
-│   ├── TestResultsCompact/
-│   ├── UnityPackageExporter/
-│   └── UnityMetaValidator/
 └── scripts/
     ├── smoke.sh                  ← Build + test + DLL leak check
     ├── doctor.sh                 ← Full environment diagnostic
@@ -139,7 +135,7 @@ git push --tags
 ## How the math trick works
 
 ```
-src/*.csproj:
+Dev~/src/*.csproj:
   UnityMathematics NuGet → PrivateAssets="All" → compile only
 
 CI:
@@ -155,14 +151,12 @@ Unity:
 
 ## What's erased on install
 
-After `setup.sh` or `install.sh` runs, **zero template traces** remain:
+After `setup.sh` or `install.sh` runs, template-only metadata is removed:
 - ❌ No `setup.sh`, `install.sh`, `AGENTS.md`, `CHANGELOG.md`
-- ❌ No GameCI/release/ai-context workflows (need configuration)
-- ❌ No sample code, docs, skills, tools
-- ❌ No template skip-check in CI
-- ✅ Core CI workflow kept (cleaned of template fingerprints)
-- ✅ Scripts kept: `smoke.sh`, `doctor.sh`, `validate-upm.sh`, `version.sh`
-- ✅ Clean `init` commit
+- ❌ No `scripts/test-template.sh`, `scripts/test-cli.sh`
+- ✅ GitHub workflows kept for CI/CD
+- ✅ Scripts kept: `smoke.sh`, `doctor.sh`, `validate-upm.sh`, `version.sh`, etc.
+- ✅ Full `Dev~/` bridge kept for outside-Unity development
 - ✅ Build passes, tests pass
 
 ## License
