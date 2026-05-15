@@ -25,4 +25,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: self-test-artifacts
-          path: /tmp/unity-template-selftest-*/
+          path: /tmp/unity-template-selftest-*
+          if-no-files-found: ignore

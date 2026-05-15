@@ -18,6 +18,11 @@ jobs:
       - name: Generate AI context
         run: bash scripts/generate-ai-context.sh artifacts/ai/codebase.md
 
+      - name: Verify AI context exists
+        run: |
+          test -s artifacts/ai/codebase.md
+          test -s artifacts/ai/codebase.compact.md
+
       - name: Upload AI context
         uses: actions/upload-artifact@v4
         with:
