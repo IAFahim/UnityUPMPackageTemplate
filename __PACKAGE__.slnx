@@ -1,11 +1,11 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/__PACKAGE__/__PACKAGE__.csproj" />
+    <Project Path="Dev~/src/__PACKAGE__/__PACKAGE__.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/__PACKAGE__.Tests/__PACKAGE__.Tests.csproj" />
+    <Project Path="Dev~/tests/__PACKAGE__.Tests/__PACKAGE__.Tests.csproj" />
   </Folder>
   <Folder Name="/benchmarks/">
-    <Project Path="benchmarks/__PACKAGE__.Benchmarks/__PACKAGE__.Benchmarks.csproj" />
+    <Project Path="Dev~/benchmarks/__PACKAGE__.Benchmarks/__PACKAGE__.Benchmarks.csproj" />
   </Folder>
 </Solution>

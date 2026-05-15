@@ -18,7 +18,7 @@ XML_COUNT=0
 for xml in $(find "$ARTIFACTS" -name "*.xml" -path "*/Test*" 2>/dev/null); do
     if [ -f "$xml" ]; then
         OUT="$ARTIFACTS/compact/$(basename "$xml" .xml).compact.txt"
-        dotnet run --project tools/TestResultsCompact -- \
+        dotnet run --project Dev~/tools/TestResultsCompact -- \
             --input "$xml" --output "$OUT" 2>/dev/null || true
         ((XML_COUNT++)) || true
         echo "  ${GREEN}✓${RESET} Compacted: $(basename "$xml")"
@@ -31,7 +31,7 @@ LOG_COUNT=0
 for log in $(find "$ARTIFACTS" -name "*.log" 2>/dev/null); do
     if [ -f "$log" ]; then
         OUT="$ARTIFACTS/compact/$(basename "$log" .log).compact.txt"
-        dotnet run --project tools/TestLogCompact -- \
+        dotnet run --project Dev~/tools/TestLogCompact -- \
             --input "$log" --output "$OUT" 2>/dev/null || true
         ((LOG_COUNT++)) || true
         echo "  ${GREEN}✓${RESET} Compacted: $(basename "$log")"

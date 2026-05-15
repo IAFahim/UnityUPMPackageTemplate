@@ -42,7 +42,7 @@ mkdir -p "$TMP_PROJECT/Assets/$DISPLAY_NAME"
 rsync -a --exclude='.git' --exclude='.github' --exclude='bin' --exclude='obj' --exclude='artifacts' ./ "$TMP_PROJECT/Assets/$DISPLAY_NAME/"
 
 # Copy exporter tool
-cp tools/UnityPackageExporter/UnityPackageExporter.cs "$TMP_PROJECT/Assets/Editor/"
+cp Dev~/tools/UnityPackageExporter/UnityPackageExporter.cs "$TMP_PROJECT/Assets/Editor/"
 
 # ── Run Unity ───────────────────────────────────────────────────
 

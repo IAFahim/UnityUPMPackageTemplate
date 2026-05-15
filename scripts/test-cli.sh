@@ -93,12 +93,8 @@ for f in \
     __PACKAGE__.Runtime __PACKAGE__.Tests __PACKAGE__.slnx \
     package.json setup.sh install.sh AGENTS.md CHANGELOG.md LICENSE \
     global.json Directory.Build.props .editorconfig .gitattributes .gitignore \
-    src/__PACKAGE__ tests/__PACKAGE__.Tests \
-    scripts/smoke.sh scripts/doctor.sh scripts/validate-upm.sh scripts/version.sh scripts/test-template.sh \
-    .github/workflows/ci.yml \
-    Samples~/QuickStart Samples~/UIToolkitDemo \
-    Documentation~ Skills~/unity-package \
-    tools/TestLogCompact tools/TestResultsCompact tools/UnityPackageExporter tools/UnityMetaValidator; do
+    Dev~/src/__PACKAGE__ Dev~/tests/__PACKAGE__.Tests Dev~/benchmarks/__PACKAGE__.Benchmarks \
+    Dev~/tools/TestLogCompact Dev~/tools/TestResultsCompact Dev~/tools/UnityPackageExporter Dev~/tools/UnityMetaValidator; do
     assert_exists "Template: $f" "$TEMPLATE_ROOT/$f"
 done
 
@@ -115,8 +111,8 @@ bash setup.sh com.test.basic "Basic Test" "Test Author" "Test.Basic" 2>&1 | tail
 
 for f in \
     com.test.basic.Runtime com.test.basic.Tests \
-    src/com.test.basic tests/com.test.basic.Tests \
-    benchmarks/com.test.basic.Benchmarks \
+    Dev~/src/com.test.basic Dev~/tests/com.test.basic.Tests \
+    Dev~/benchmarks/com.test.basic.Benchmarks \
     com.test.basic.slnx package.json README.md LICENSE \
     .editorconfig .gitignore scripts/smoke.sh .github/workflows/ci.yml; do
     assert_exists "setup: $(basename "$f")" "$T/pkg/$f"
@@ -195,9 +191,9 @@ dotnet build com.bovinelabs.grid-pathfinding.slnx -c Release --no-restore >/dev/
 section "10. Tools"
 
 T="$TEST_ROOT/basic/pkg"
-dotnet build "$TEMPLATE_ROOT/tools/TestLogCompact/TestLogCompact.csproj" -c Release >/dev/null 2>&1 && pass "tool: TestLogCompact builds" || fail "tool: TestLogCompact builds"
-dotnet build "$TEMPLATE_ROOT/tools/TestResultsCompact/TestResultsCompact.csproj" -c Release >/dev/null 2>&1 && pass "tool: TestResultsCompact builds" || fail "tool: TestResultsCompact builds"
-dotnet build "$TEMPLATE_ROOT/tools/UnityMetaValidator/UnityMetaValidator.csproj" -c Release >/dev/null 2>&1 && pass "tool: UnityMetaValidator builds" || fail "tool: UnityMetaValidator builds"
+dotnet build "$TEMPLATE_ROOT/Dev~/tools/TestLogCompact/TestLogCompact.csproj" -c Release >/dev/null 2>&1 && pass "tool: TestLogCompact builds" || fail "tool: TestLogCompact builds"
+dotnet build "$TEMPLATE_ROOT/Dev~/tools/TestResultsCompact/TestResultsCompact.csproj" -c Release >/dev/null 2>&1 && pass "tool: TestResultsCompact builds" || fail "tool: TestResultsCompact builds"
+dotnet build "$TEMPLATE_ROOT/Dev~/tools/UnityMetaValidator/UnityMetaValidator.csproj" -c Release >/dev/null 2>&1 && pass "tool: UnityMetaValidator builds" || fail "tool: UnityMetaValidator builds"
 
 # ═══════════════════════ SUMMARY ════════════════════════════
 echo ""

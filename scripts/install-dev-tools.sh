@@ -51,11 +51,11 @@ fi
 # ── Project Tools ───────────────────────────────────────────────
 
 echo ""
-echo "  ${BOLD}Project-specific tools (in tools/ folder)${RESET}"
-echo "  These can be run using 'dotnet run --project tools/<ToolName>':"
+echo "  ${BOLD}Project-specific tools (in Dev~/tools/ folder)${RESET}"
+echo "  These can be run using 'dotnet run --project Dev~/tools/<ToolName>':"
 echo ""
 
-for tool in tools/*/; do
+for tool in Dev~/tools/*/; do
     [ -d "$tool" ] || continue
     name=$(basename "$tool")
     echo "  - ${BOLD}$name${RESET}"
@@ -63,7 +63,7 @@ done
 
 echo ""
 echo "  Example:"
-echo "    ${DIM}dotnet run --project tools/UnityMetaValidator -- ./Runtime${RESET}"
+echo "    ${DIM}dotnet run --project Dev~/tools/UnityMetaValidator -- ./Runtime${RESET}"
 echo ""
 
 echo "  Done."
