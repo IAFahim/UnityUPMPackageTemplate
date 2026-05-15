@@ -41,6 +41,13 @@ if [ -f "package.json" ]; then
     validate_field "license"
     validate_field "author"
 
+    # OpenUPM requires: description, keywords, author.url or author.email
+    PKG_DESC=$(python3 -c "import json; print(json.load(open('package.json')).get('description',''))" 2>/dev/null || true)
+    [ -n "$PKG_DESC" ] && ok "description present (OpenUPM)" || warn "description missing — required for OpenUPM"
+
+    PKG_KEYWORDS=$(python3 -c "import json; kw=json.load(open('package.json')).get('keywords',[]); print(len(kw))" 2>/dev/null || echo "0")
+    [ "$PKG_KEYWORDS" -gt 0 ] && ok "$PKG_KEYWORDS keywords (OpenUPM)" || warn "no keywords — add some for OpenUPM discoverability"
+
     # Validate name format
     PKG_NAME=$(python3 -c "import json; print(json.load(open('package.json'))['name'])" 2>/dev/null || true)
     if [ -n "$PKG_NAME" ]; then

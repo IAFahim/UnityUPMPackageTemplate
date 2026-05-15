@@ -214,10 +214,12 @@ rm -- "$0"
 
 # Clean README
 BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"
+OPENUPM_BADGE_URL="https://img.shields.io/npm/v/$PACKAGE_ID?label=openupm&registry_uri=https://package.openupm.com"
 cat > README.md <<README
 # $DISPLAY_NAME
 
 [![CI]($BADGE_URL)](https://github.com/$GH_OWNER/$PACKAGE_ID/actions)
+[![OpenUPM]($OPENUPM_BADGE_URL)](https://openupm.com/packages/$PACKAGE_ID/)
 
 > $DISPLAY_NAME
 
@@ -256,6 +258,8 @@ README
 # Install git hooks if git is available
 if git rev-parse --git-dir >/dev/null 2>&1 && [ -d "scripts/hooks" ]; then
     bash scripts/install-hooks.sh >/dev/null 2>&1 || true
+    GREEN=$'\033[32m'
+    RESET=$'\033[0m'
     echo "  ${GREEN}✓${RESET} Git hooks installed"
 fi
 

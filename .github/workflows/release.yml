@@ -78,3 +78,11 @@ jobs:
             artifacts/ai/codebase.md
             artifacts/ai/codebase.compact.md
           generate_release_notes: true
+
+      - name: OpenUPM indexer reminder
+        run: |
+          PKG=$(python3 -c "import json; print(json.load(open('package.json'))['name'])")
+          VER=$(python3 -c "import json; print(json.load(open('package.json'))['version'])")
+          echo "OpenUPM will index this release automatically if registered."
+          echo "Check: https://openupm.com/packages/${PKG}/"
+          echo "Register once: bash scripts/publish-openupm.sh"
