@@ -18,9 +18,10 @@ rm -rf .git .gameci artifacts bin obj
 bash setup.sh com.gameci.selftest "Unity Package Self Test" "GameCI" "GameCI.SelfTest"
 
 # GameCI packageMode: true expects a folder named 'Tests' at the package root
-if [ -d "__PACKAGE__.Tests" ]; then
-    echo "Renaming __PACKAGE__.Tests to Tests"
-    mv __PACKAGE__.Tests Tests
+TESTS_DIR=$(find . -maxdepth 1 -type d -name '*.Tests' | head -1)
+if [ -n "$TESTS_DIR" ]; then
+    echo "Renaming $(basename "$TESTS_DIR") to Tests"
+    mv "$TESTS_DIR" Tests
 fi
 
 # Remove dev-only folders before Unity sees the package.
