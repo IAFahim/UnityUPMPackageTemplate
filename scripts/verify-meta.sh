@@ -20,15 +20,21 @@ META_EXTENSIONS="cs asmdef unity prefab asset mat png jpg jpeg uxml uss ttf oga 
 
 # ── Check 1: Every asset has a matching .meta ──────────────────
 
-for ext in $META_EXTENSIONS; do
-    while IFS= read -r f; do
-        # Skip bin/obj
-        [[ "$f" == */bin/* || "$f" == */obj/* ]] && continue
-        meta="${f}.meta"
+UNITY_FOLDERS="__PACKAGE__.Runtime __PACKAGE__.Tests __PACKAGE__.Editor Samples~"
+
+for folder in $UNITY_FOLDERS; do
+    if [ ! -d "$folder" ]; then continue; fi
+    while IFS= read -r asset; do
+        meta="${asset}.meta"
         if [ ! -f "$meta" ]; then
-            warn "Missing .meta: $f"
+            fail "Missing .meta: $asset"
         fi
-    done < <(find . -name "*.$ext" -not -path './.git/*' 2>/dev/null)
+    done < <(find "$folder" -type f \( \
+        -name "*.cs" -o -name "*.asmdef" -o -name "*.unity" -o -name "*.prefab" -o \
+        -name "*.asset" -o -name "*.mat" -o -name "*.png" -o -name "*.jpg" -o \
+        -name "*.jpeg" -o -name "*.uxml" -o -name "*.uss" -o -name "*.ttf" -o \
+        -name "*.oga" -o -name "*.wav" -o -name "*.mp3" \
+    \) 2>/dev/null)
 done
 
 META_COUNT=$(find . -name "*.meta" -not -path './.git/*' -not -path '*/bin/*' -not -path '*/obj/*' 2>/dev/null | wc -l)
