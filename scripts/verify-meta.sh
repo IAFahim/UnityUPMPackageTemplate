@@ -37,7 +37,7 @@ for folder in $UNITY_FOLDERS; do
     \) 2>/dev/null)
 done
 
-META_COUNT=$(find . -name "*.meta" -not -path './.git/*' -not -path '*/bin/*' -not -path '*/obj/*' 2>/dev/null | wc -l)
+META_COUNT=$(find . -name "*.meta" -not -path './.git/*' -not -path './.gameci/*' -not -path './artifacts/*' -not -path '*/bin/*' -not -path '*/obj/*' 2>/dev/null | wc -l)
 ok "Found $META_COUNT .meta files"
 
 # ── Check 2: No orphan .meta files (no matching asset) ─────────
@@ -50,13 +50,13 @@ while IFS= read -r meta; do
         fail "Orphan .meta: $meta"
         ((ORPHANS++))
     fi
-done < <(find . -name "*.meta" -not -path './.git/*' 2>/dev/null)
+done < <(find . -name "*.meta" -not -path './.git/*' -not -path './.gameci/*' -not -path './artifacts/*' 2>/dev/null)
 
 [ "$ORPHANS" -eq 0 ] && ok "No orphan .meta files"
 
 # ── Check 3: No duplicate GUIDs ────────────────────────────────
 
-DUPES=$(find . -name "*.meta" -not -path './.git/*' -not -path '*/bin/*' -not -path '*/obj/*' \
+DUPES=$(find . -name "*.meta" -not -path './.git/*' -not -path './.gameci/*' -not -path './artifacts/*' -not -path '*/bin/*' -not -path '*/obj/*' \
     -exec grep -h 'guid:' {} \; 2>/dev/null \
     | sed 's/.*guid: *//' | sort | uniq -d)
 
@@ -65,20 +65,20 @@ if [ -z "$DUPES" ]; then
 else
     for guid in $DUPES; do
         fail "Duplicate GUID $guid in:"
-        grep -rl "guid: $guid" --include="*.meta" . 2>/dev/null | sed 's/^/    /'
+        grep -rl "guid: $guid" --include="*.meta" --exclude-dir=".gameci" --exclude-dir="artifacts" . 2>/dev/null | sed 's/^/    /'
     done
 fi
 
 # ── Check 4: No empty GUIDs ────────────────────────────────────
 
-EMPTY=$(find . -name "*.meta" -not -path './.git/*' -not -path '*/bin/*' -not -path '*/obj/*' \
+EMPTY=$(find . -name "*.meta" -not -path './.git/*' -not -path './.gameci/*' -not -path './artifacts/*' -not -path '*/bin/*' -not -path '*/obj/*' \
     -exec grep -l 'guid: *$' {} \; 2>/dev/null || true)
 
 [ -z "$EMPTY" ] && ok "No empty GUIDs" || fail "Empty GUIDs: $EMPTY"
 
 # ── Check 5: GUIDs are lowercase hex ────────────────────────────
 
-BAD_GUID=$(find . -name "*.meta" -not -path './.git/*' -not -path '*/bin/*' -not -path '*/obj/*' \
+BAD_GUID=$(find . -name "*.meta" -not -path './.git/*' -not -path './.gameci/*' -not -path './artifacts/*' -not -path '*/bin/*' -not -path '*/obj/*' \
     -exec grep -h 'guid:' {} \; 2>/dev/null \
     | sed 's/.*guid: *//' | grep -vE '^[0-9a-f]{32}$' | head -5 || true)
 
