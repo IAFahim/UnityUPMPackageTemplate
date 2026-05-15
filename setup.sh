@@ -29,7 +29,7 @@ escape_sed() {
     printf '%s' "$1" | sed -e 's/[\\/&]/\\&/g'
 }
 
-detect_author()   { git config --global user.name 2>/dev/null || gh api user -q .login 2>/dev/null || echo ""; }
+detect_author()   { git config --global user.name 2>/dev/null || gh api user -q .login 2>/dev/null || echo "Unknown Author"; }
 detect_email()    { git config --global user.email 2>/dev/null || echo ""; }
 detect_gh_owner() { gh api user -q .login 2>/dev/null || echo ""; }
 

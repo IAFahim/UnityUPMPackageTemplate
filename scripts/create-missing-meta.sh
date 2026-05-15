@@ -45,3 +45,10 @@ done < <(
             -name '*.asset' \
         \) 2>/dev/null | sort
 )
+
+while IFS= read -r dir; do
+    write_meta "$dir"
+done < <(
+    find __PACKAGE__.Runtime __PACKAGE__.Tests __PACKAGE__.Editor Samples~ \
+        -type d 2>/dev/null | sort
+)

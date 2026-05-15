@@ -247,7 +247,7 @@ if [ -n "$SLNX" ]; then
         fail "dotnet build failed"
     fi
 
-    if dotnet test "$SLNX" -c Release --no-build --verbosity quiet 2>&1 | grep -q "Passed!"; then
+    if dotnet test "$SLNX" -c Release --no-build --verbosity quiet >/dev/null 2>&1; then
         ok "dotnet test (all pass)"
     else
         fail "dotnet test failed or no tests found"
