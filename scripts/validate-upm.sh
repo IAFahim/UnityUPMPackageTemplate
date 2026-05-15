@@ -100,10 +100,27 @@ else
     [ -z "$LEFTOVER" ] && ok "No unreplaced placeholders" || fail "Placeholders in: $LEFTOVER"
 fi
 
-# No template artifacts
-for f in setup.sh install.sh AGENTS.md; do
-    [ ! -f "$f" ] && ok "No $f (template artifact)" || fail "$f is a template artifact"
-done
+if [ "$IS_TEMPLATE" -eq 1 ]; then
+    for f in setup.sh install.sh AGENTS.md CHANGELOG.md; do
+        [ -f "$f" ] && ok "$f exists in template mode" || fail "$f missing in template mode"
+    done
+else
+    for f in setup.sh install.sh AGENTS.md; do
+        [ ! -f "$f" ] && ok "No $f in generated package" || fail "$f is a template artifact"
+    done
+fi
+
+if [ "$IS_TEMPLATE" -eq 1 ]; then
+    for f in \
+        __PACKAGE__.Runtime/__PLACEHOLDER__.cs \
+        __PACKAGE__.Tests/__PLACEHOLDER__.Tests.cs \
+        Dev~/src/__PACKAGE__/__PACKAGE__.csproj \
+        Dev~/tests/__PACKAGE__.Tests/__PACKAGE__.Tests.csproj \
+        __PACKAGE__.slnx
+    do
+        [ -e "$f" ] && ok "Template file exists: $f" || fail "Template file missing: $f"
+    done
+fi
 
 # No IDE/OS files
 JUNK=$(find . -maxdepth 3 -name "*.user" -o -name ".DS_Store" -o -name "Thumbs.db" | head -5 || true)
@@ -120,8 +137,8 @@ TESTS_DIR=$(find . -maxdepth 1 -type d -name "*.Tests" | head -1)
 # ── Dotnet bridge ───────────────────────────────────────────────
 
 if ls *.slnx >/dev/null 2>&1; then ok "Solution file exists"; else warn "No .slnx file"; fi
-[ -d "src" ] && ok "src/ directory (dotnet bridge)" || warn "No src/ directory"
-[ -d "tests" ] && ok "tests/ directory (dotnet bridge)" || warn "No tests/ directory"
+[ -d "Dev~/src" ] && ok "Dev~/src/ directory (dotnet bridge)" || warn "No Dev~/src/ directory"
+[ -d "Dev~/tests" ] && ok "Dev~/tests/ directory (dotnet bridge)" || warn "No Dev~/tests/ directory"
 
 # ── Summary ─────────────────────────────────────────────────────
 
