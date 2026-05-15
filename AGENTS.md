@@ -4,7 +4,7 @@
 This is a **Unity UPM package template** that compiles and tests outside Unity using `UnityMathematics` NuGet.
 
 ### Source layout
-- `__PACKAGE__.Runtime/` — Unity package source (single source of truth)
+- `__PACKAGE__/Runtime/` — Unity package source (single source of truth)
 - `Dev~/src/__PACKAGE__/` — dotnet csproj that compiles `Runtime/**/*.cs` via `<Compile Include>`
 - `Dev~/tests/__PACKAGE__.Tests/` — dotnet test project that compiles `Tests/**/*.cs`
 - `Dev~/benchmarks/__PACKAGE__.Benchmarks/` — BenchmarkDotNet

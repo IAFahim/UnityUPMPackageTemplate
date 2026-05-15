@@ -1,8 +1,8 @@
 {
-    "name": "__PACKAGE__.Tests",
-    "rootNamespace": "__NAMESPACE__.Tests",
+    "name": "__PACKAGE__.tests",
+    "rootNamespace": "",
     "references": [
-        "__PACKAGE__.Runtime",
+        "__PACKAGE__",
         "Unity.Mathematics",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
@@ -12,8 +12,10 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"

@@ -76,7 +76,7 @@ fi
 # ── Package structure ───────────────────────────────────────────
 
 IS_TEMPLATE=0
-if [ -f "__PACKAGE__.Runtime/__PLACEHOLDER__.cs" ]; then
+if [ -f "__PACKAGE__/Runtime/__PLACEHOLDER__.cs" ]; then
     IS_TEMPLATE=1
 fi
 
@@ -102,29 +102,29 @@ else
 fi
 
 # Runtime asmdef
-RUNTIME_ASMDEF=$(find . -maxdepth 2 -name "*.Runtime.asmdef" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
+RUNTIME_ASMDEF=$(find . -maxdepth 3 -name "*.asmdef" -path "*/Runtime/*" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
 if [ -n "$RUNTIME_ASMDEF" ]; then
     ok "Runtime asmdef: $(basename "$RUNTIME_ASMDEF")"
     # Check noEngineReferences
     NO_ENGINE=$(python3 -c "import json; print(json.load(open('$RUNTIME_ASMDEF')).get('noEngineReferences', False))" 2>/dev/null || echo "False")
     if [ "$NO_ENGINE" = "True" ]; then
-        ok "Runtime asmdef has noEngineReferences=true"
+        ok "Runtime asmdef noEngineReferences=true (no UnityEngine)"
     else
-        warn "Runtime asmdef noEngineReferences not set — runtime may pull in UnityEngine"
+        ok "Runtime asmdef noEngineReferences=false (UnityEngine available)"
     fi
 else
     fail "No Runtime asmdef found"
 fi
 
 # Tests asmdef
-TESTS_ASMDEF=$(find . -maxdepth 2 -name "*.Tests.asmdef" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
+TESTS_ASMDEF=$(find . -maxdepth 3 -name "*.asmdef" -path "*/Tests/*" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
 [ -n "$TESTS_ASMDEF" ] && ok "Tests asmdef: $(basename "$TESTS_ASMDEF")" || warn "No Tests asmdef found"
 
 # ── Source files ────────────────────────────────────────────────
 
-RUNTIME_DIR=$(find . -maxdepth 1 -type d -name "*.Runtime" | head -1)
+RUNTIME_DIR=$(find . -maxdepth 1 -type d -not -name '.*' -not -name 'Dev~*' -not -name 'bin' -not -name 'obj' -not -name 'artifacts' -not -name 'benchmarks' -not -name 'Samples~' -not -name 'Documentation~' -not -name 'Skills~' -not -name 'Tools~' -not -name 'scripts' -not -name '.github' | head -1)
 if [ -n "$RUNTIME_DIR" ]; then
-    CS_COUNT=$(find "$RUNTIME_DIR" -name "*.cs" ! -path "*/bin/*" ! -path "*/obj/*" 2>/dev/null | wc -l)
+    CS_COUNT=$(find "$RUNTIME_DIR/Runtime" -name "*.cs" ! -path "*/bin/*" ! -path "*/obj/*" 2>/dev/null | wc -l)
     ok "Runtime has $CS_COUNT .cs files"
 else
     fail "No *.Runtime directory found"

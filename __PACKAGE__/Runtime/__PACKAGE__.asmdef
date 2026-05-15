@@ -1,12 +1,10 @@
 {
-    "name": "__PACKAGE__.Editor",
-    "rootNamespace": "__NAMESPACE__.Editor",
+    "name": "__PACKAGE__",
+    "rootNamespace": "",
     "references": [
-        "__PACKAGE__.Runtime"
+        "Unity.Mathematics"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

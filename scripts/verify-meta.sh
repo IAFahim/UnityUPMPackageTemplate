@@ -20,7 +20,7 @@ META_EXTENSIONS="cs asmdef unity prefab asset mat png jpg jpeg uxml uss ttf oga 
 
 # ── Check 1: Every asset has a matching .meta ──────────────────
 
-UNITY_FOLDERS="__PACKAGE__.Runtime __PACKAGE__.Tests __PACKAGE__.Editor Samples~"
+UNITY_FOLDERS="__PACKAGE__/Runtime __PACKAGE__/Tests __PACKAGE__/Editor Samples~"
 
 for folder in $UNITY_FOLDERS; do
     if [ ! -d "$folder" ]; then continue; fi

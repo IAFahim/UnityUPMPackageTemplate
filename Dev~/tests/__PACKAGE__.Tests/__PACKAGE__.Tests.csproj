@@ -25,8 +25,8 @@
 
   <!-- Test files live in the Unity Tests/ folder -->
   <ItemGroup>
-    <Compile Include="../../../__PACKAGE__.Tests/**/*.Tests.cs" />
-    <Compile Remove="../../../__PACKAGE__.Tests/**/bin/**" />
-    <Compile Remove="../../../__PACKAGE__.Tests/**/obj/**" />
+    <Compile Include="../../../__PACKAGE__/Tests/**/*.Tests.cs" />
+    <Compile Remove="../../../__PACKAGE__/Tests/**/bin/**" />
+    <Compile Remove="../../../__PACKAGE__/Tests/**/obj/**" />
   </ItemGroup>
 </Project>

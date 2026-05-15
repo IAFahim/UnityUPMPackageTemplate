@@ -16,7 +16,7 @@ echo "  ${BOLD}Validating UPM package...${RESET}"
 echo ""
 
 IS_TEMPLATE=0
-if [ -f "__PACKAGE__.Runtime/__PLACEHOLDER__.cs" ]; then
+if [ -f "__PACKAGE__/Runtime/__PLACEHOLDER__.cs" ]; then
     IS_TEMPLATE=1
 fi
 
@@ -73,8 +73,8 @@ fi
 
 # ── asmdef files ────────────────────────────────────────────────
 
-RUNTIME_ASMDEF=$(find . -maxdepth 2 -name "*.Runtime.asmdef" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
-TESTS_ASMDEF=$(find . -maxdepth 2 -name "*.Tests.asmdef" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
+RUNTIME_ASMDEF=$(find . -maxdepth 3 -name "*.asmdef" -path "*/Runtime/*" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
+TESTS_ASMDEF=$(find . -maxdepth 3 -name "*.asmdef" -path "*/Tests/*" ! -path "*/bin/*" ! -path "*/obj/*" | head -1)
 
 [ -n "$RUNTIME_ASMDEF" ] && ok "Runtime asmdef exists" || fail "No Runtime asmdef"
 [ -n "$TESTS_ASMDEF" ] && ok "Tests asmdef exists" || warn "No Tests asmdef"
@@ -119,8 +119,8 @@ fi
 
 if [ "$IS_TEMPLATE" -eq 1 ]; then
     for f in \
-        __PACKAGE__.Runtime/__PLACEHOLDER__.cs \
-        __PACKAGE__.Tests/__PLACEHOLDER__.Tests.cs \
+        __PACKAGE__/Runtime/__PLACEHOLDER__.cs \
+        __PACKAGE__/Tests/__PLACEHOLDER__.Tests.cs \
         Dev~/src/__PACKAGE__/__PACKAGE__.csproj \
         Dev~/tests/__PACKAGE__.Tests/__PACKAGE__.Tests.csproj \
         __PACKAGE__.slnx
@@ -135,11 +135,11 @@ JUNK=$(find . -maxdepth 3 -name "*.user" -o -name ".DS_Store" -o -name "Thumbs.d
 
 # ── Source structure ────────────────────────────────────────────
 
-RUNTIME_DIR=$(find . -maxdepth 1 -type d -name "*.Runtime" | head -1)
-[ -n "$RUNTIME_DIR" ] && ok "Runtime directory: $RUNTIME_DIR" || fail "No Runtime directory"
+RUNTIME_DIR=$(find . -maxdepth 1 -type d -not -name '.*' -not -name 'Dev~*' -not -name 'bin' -not -name 'obj' -not -name 'artifacts' -not -name 'benchmarks' -not -name 'Samples~' -not -name 'Documentation~' -not -name 'Skills~' -not -name 'Tools~' -not -name 'scripts' -not -name '.github' | head -1)
+[ -n "$RUNTIME_DIR" ] && ok "Package directory: $RUNTIME_DIR" || fail "No package directory"
 
-TESTS_DIR=$(find . -maxdepth 1 -type d -name "*.Tests" | head -1)
-[ -n "$TESTS_DIR" ] && ok "Tests directory: $TESTS_DIR" || warn "No Tests directory"
+TESTS_DIR="${RUNTIME_DIR}/Tests"
+[ -d "$TESTS_DIR" ] && ok "Tests directory: $TESTS_DIR" || warn "No Tests directory"
 
 # ── Dotnet bridge ───────────────────────────────────────────────
 

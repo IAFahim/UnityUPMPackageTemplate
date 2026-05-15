@@ -48,7 +48,7 @@ jobs:
 
       - name: Verify no unreplaced placeholders
         run: |
-          if ls __PACKAGE__.Runtime/__PLACEHOLDER__.cs 2>/dev/null | grep -q .; then
+          if ls __PACKAGE__/Runtime/__PLACEHOLDER__.cs 2>/dev/null | grep -q .; then
             echo "SKIP: Template repo — placeholders are intentional."
             exit 0
           fi

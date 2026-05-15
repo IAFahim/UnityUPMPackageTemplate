@@ -17,7 +17,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
 # Confirm this is a generated package, not a raw template
-if [ -f "__PACKAGE__.Runtime/__PLACEHOLDER__.cs" ]; then
+if [ -f "__PACKAGE__/Runtime/__PLACEHOLDER__.cs" ]; then
     echo "This is the raw template. Upgrade is for generated packages only."
     exit 1
 fi

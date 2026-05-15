@@ -18,7 +18,7 @@ trap cleanup EXIT
 
 # ── Check we're in the raw template (has __PLACEHOLDER__ files) ──
 
-if [ ! -f "$TEMPLATE_ROOT/__PACKAGE__.Runtime/__PLACEHOLDER__.cs" ]; then
+if [ ! -f "$TEMPLATE_ROOT/__PACKAGE__/Runtime/__PLACEHOLDER__.cs" ]; then
     echo "  ${RED}✗${RESET} Not running from raw template (no __PLACEHOLDER__ files)."
     echo "  Run this from the template repo before setup.sh is executed."
     exit 1
@@ -50,9 +50,10 @@ check() {
     fi
 }
 
-check exists "com.selftest.verify.Runtime"
-check exists "com.selftest.verify.Tests"
-check exists "com.selftest.verify.Editor"
+check exists "com.selftest.verify"
+check exists "com.selftest.verify/Runtime"
+check exists "com.selftest.verify/Tests"
+check exists "com.selftest.verify/Editor"
 check exists "package.json"
 check exists "README.md"
 check exists "LICENSE"

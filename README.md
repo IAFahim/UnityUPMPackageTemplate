@@ -27,19 +27,20 @@ This is a **template repository** — a starting point for creating Unity packag
 ┌─────────────────────────────────────────────────────────┐
 │  Your package repo (what gets generated)                 │
 │                                                          │
-│  com.owner.pkg.Runtime/    ← Your code lives HERE       │
-│  com.owner.pkg.Tests/      ← Your tests live HERE       │
-│  com.owner.pkg.Editor/     ← Your editor code HERE      │
+│  com.owner.pkg/               ← Single package root     │
+│    Runtime/                    ← Your code lives HERE    │
+│    Tests/                      ← Your tests live HERE    │
+│    Editor/                     ← Your editor code HERE   │
 │                                                          │
-│  Dev~/src/                 ← dotnet project that         │
-│                              compiles Runtime/**/*.cs    │
-│                              (no Unity needed)           │
+│  Dev~/src/                    ← dotnet project that      │
+│                                 compiles Runtime/**/*.cs │
+│                                 (no Unity needed)        │
 │                                                          │
-│  Dev~/tests/               ← dotnet test project that   │
-│                              compiles Tests/**/*.cs      │
+│  Dev~/tests/                  ← dotnet test project that │
+│                                 compiles Tests/**/*.cs   │
 │                                                          │
-│  package.json              ← Unity sees this as a UPM   │
-│                              package via git URL         │
+│  package.json                 ← Unity sees this as a UPM │
+│                                 package via git URL      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -55,16 +56,15 @@ After running `setup.sh` or `install.sh`, you get:
 
 ```
 my-package/
-├── com.owner.pkg.Runtime/          ← YOUR CODE (Unity compiles this)
-│   ├── MyType.cs                      Replace the placeholder files
-│   └── com.owner.pkg.Runtime.asmdef   with your own types.
-│
-├── com.owner.pkg.Tests/            ← YOUR TESTS (Unity + dotnet)
-│   ├── MyType.Tests.cs                Shared by both Unity and CI.
-│   └── com.owner.pkg.Tests.asmdef
-│
-├── com.owner.pkg.Editor/           ← YOUR EDITOR CODE (optional)
-│   └── com.owner.pkg.Editor.asmdef
+├── com.owner.pkg/                   ← YOUR PACKAGE (Unity compiles this)
+│   ├── Runtime/                       Runtime types + asmdef
+│   │   ├── MyType.cs                    Replace the placeholder files
+│   │   └── com.owner.pkg.asmdef         with your own types.
+│   ├── Tests/                        ← YOUR TESTS (Unity + dotnet)
+│   │   ├── MyType.Tests.cs              Shared by both Unity and CI.
+│   │   └── com.owner.pkg.Tests.asmdef
+│   └── Editor/                       ← YOUR EDITOR CODE (optional)
+│       └── com.owner.pkg.Editor.asmdef
 │
 ├── Samples~/                       ← Importable samples (optional)
 │   ├── QuickStart/
@@ -100,9 +100,9 @@ my-package/
 
 | I want to... | Put it in... | Why |
 |---|---|---|
-| Add a runtime type | `com.owner.pkg.Runtime/` | Unity compiles this folder |
-| Add a runtime test | `com.owner.pkg.Tests/` | Shared by Unity + dotnet CI |
-| Add an editor window | `com.owner.pkg.Editor/` | Editor-only platform |
+| Add a runtime type | `com.owner.pkg/Runtime/` | Unity compiles this folder |
+| Add a runtime test | `com.owner.pkg/Tests/` | Shared by Unity + dotnet CI |
+| Add an editor window | `com.owner.pkg/Editor/` | Editor-only platform |
 | Add a sample | `Samples~/MySample/` | Users import via Package Manager |
 | Add a benchmark | `Dev~/benchmarks/` | BenchmarkDotNet, dev-only |
 | Add docs | `Documentation~/` | MkDocs site |

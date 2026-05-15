@@ -165,9 +165,7 @@ echo ""
 # ── Rename folders ──────────────────────────────────────────────
 
 echo "  Setting up..."
-[ -d "__PACKAGE__.Runtime" ]          && mv "__PACKAGE__.Runtime"          "$PACKAGE_ID.Runtime"
-[ -d "__PACKAGE__.Tests" ]            && mv "__PACKAGE__.Tests"            "$PACKAGE_ID.Tests"
-[ -d "__PACKAGE__.Editor" ]           && mv "__PACKAGE__.Editor"           "$PACKAGE_ID.Editor"
+[ -d "__PACKAGE__" ]                  && mv "__PACKAGE__"                  "$PACKAGE_ID"
 [ -d "Dev~/src/__PACKAGE__" ]         && mv "Dev~/src/__PACKAGE__"         "Dev~/src/$PACKAGE_ID"
 [ -d "Dev~/tests/__PACKAGE__.Tests" ] && mv "Dev~/tests/__PACKAGE__.Tests" "Dev~/tests/$PACKAGE_ID.Tests"
 [ -d "Dev~/benchmarks/__PACKAGE__.Benchmarks" ] && mv "Dev~/benchmarks/__PACKAGE__.Benchmarks" "Dev~/benchmarks/$PACKAGE_ID.Benchmarks"
@@ -278,9 +276,9 @@ Or Unity → Package Manager → Add from git URL.
 
 | What | Where |
 |------|-------|
-| Runtime types | \`$PACKAGE_ID.Runtime/\` |
-| Tests | \`$PACKAGE_ID.Tests/\` |
-| Editor code | \`$PACKAGE_ID.Editor/\` |
+| Runtime types | \`$PACKAGE_ID/Runtime/\` |
+| Tests | \`$PACKAGE_ID/Tests/\` |
+| Editor code | \`$PACKAGE_ID/Editor/\` |
 | Samples | \`Samples~/\` |
 | Docs | \`Documentation~/\` |
 
@@ -365,6 +363,6 @@ VER
 echo ""
 echo "  Done."
 echo ""
-echo "    Edit:  $PACKAGE_ID.Runtime/"
+echo "    Edit:  $PACKAGE_ID/Runtime/"
 echo "    Test:  dotnet test -c Release"
 echo ""

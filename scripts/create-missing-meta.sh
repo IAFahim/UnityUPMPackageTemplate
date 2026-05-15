@@ -31,9 +31,9 @@ while IFS= read -r f; do
     write_meta "$f"
 done < <(
     find \
-        __PACKAGE__.Runtime \
-        __PACKAGE__.Tests \
-        __PACKAGE__.Editor \
+        __PACKAGE__/Runtime \
+        __PACKAGE__/Tests \
+        __PACKAGE__/Editor \
         Samples~ \
         -type f \( \
             -name '*.cs' -o \
@@ -49,6 +49,6 @@ done < <(
 while IFS= read -r dir; do
     write_meta "$dir"
 done < <(
-    find __PACKAGE__.Runtime __PACKAGE__.Tests __PACKAGE__.Editor Samples~ \
+    find __PACKAGE__/Runtime __PACKAGE__/Tests __PACKAGE__/Editor Samples~ \
         -type d 2>/dev/null | sort
 )

@@ -90,7 +90,7 @@ assert_eq "sed_esc: combined"    'a\/b\&c\\d'      "$(escape_sed 'a/b&c\d')"
 section "2. Template Integrity"
 
 for f in \
-    __PACKAGE__.Runtime __PACKAGE__.Tests __PACKAGE__.slnx \
+    __PACKAGE__ __PACKAGE__.slnx \
     package.json setup.sh install.sh AGENTS.md CHANGELOG.md LICENSE \
     global.json Directory.Build.props .editorconfig .gitattributes .gitignore \
     Dev~/src/__PACKAGE__ Dev~/tests/__PACKAGE__.Tests Dev~/benchmarks/__PACKAGE__.Benchmarks \
@@ -98,9 +98,9 @@ for f in \
     assert_exists "Template: $f" "$TEMPLATE_ROOT/$f"
 done
 
-assert_exists "Template: __PLACEHOLDER__.cs"           "$TEMPLATE_ROOT/__PACKAGE__.Runtime/__PLACEHOLDER__.cs"
-assert_exists "Template: __PLACEHOLDER__.Tests.cs"      "$TEMPLATE_ROOT/__PACKAGE__.Tests/__PLACEHOLDER__.Tests.cs"
-assert_contains "Template: asmdef noEngineReferences"    "$TEMPLATE_ROOT/__PACKAGE__.Runtime/__PACKAGE__.Runtime.asmdef" '"noEngineReferences": true'
+assert_exists "Template: __PLACEHOLDER__.cs"           "$TEMPLATE_ROOT/__PACKAGE__/Runtime/__PLACEHOLDER__.cs"
+assert_exists "Template: __PLACEHOLDER__.Tests.cs"      "$TEMPLATE_ROOT/__PACKAGE__/Tests/__PLACEHOLDER__.Tests.cs"
+assert_contains "Template: asmdef name"               "$TEMPLATE_ROOT/__PACKAGE__/Runtime/__PACKAGE__.asmdef" '"name": "__PACKAGE__"'
 
 # ═══════════════════════ SECTION 3: setup.sh basic ═══════════
 section "3. setup.sh — Basic"
@@ -110,7 +110,8 @@ cp -r "$TEMPLATE_ROOT" "$T/pkg"; cd "$T/pkg"; rm -rf .git
 bash setup.sh com.test.basic "Basic Test" "Test Author" "Test.Basic" 2>&1 | tail -3
 
 for f in \
-    com.test.basic.Runtime com.test.basic.Tests \
+    com.test.basic \
+    com.test.basic/Tests \
     Dev~/src/com.test.basic Dev~/tests/com.test.basic.Tests \
     Dev~/benchmarks/com.test.basic.Benchmarks \
     com.test.basic.slnx package.json README.md LICENSE \
@@ -127,7 +128,7 @@ assert_no_dll_leak     "setup: no DLL leak"     "$T/pkg"
 assert_contains "setup: pkg name"       "$T/pkg/package.json" '"name": "com.test.basic"'
 assert_contains "setup: pkg display"    "$T/pkg/package.json" '"displayName": "Basic Test"'
 assert_contains "setup: README title"   "$T/pkg/README.md"    "# Basic Test"
-assert_contains "setup: asmdef name"    "$T/pkg/com.test.basic.Runtime/com.test.basic.Runtime.asmdef" '"name": "com.test.basic.Runtime"'
+assert_contains "setup: asmdef name"    "$T/pkg/com.test.basic/Runtime/com.test.basic.asmdef" '"name": "com.test.basic"'
 
 # ═══════════════════════ SECTION 4: Special chars ════════════
 section "4. setup.sh — Special Characters"
@@ -148,8 +149,9 @@ T="$TEST_ROOT/hyphen"; mkdir -p "$T"
 cp -r "$TEMPLATE_ROOT" "$T/pkg"; cd "$T/pkg"; rm -rf .git
 bash setup.sh com.bovinelabs.grid-pathfinding "Grid Pathfinding" "Vex" "Bovinelabs.GridPathfinding" 2>&1 | tail -3
 
-assert_exists "hyphen: Runtime dir" "$T/pkg/com.bovinelabs.grid-pathfinding.Runtime"
-assert_exists "hyphen: Tests dir"   "$T/pkg/com.bovinelabs.grid-pathfinding.Tests"
+assert_exists "hyphen: package dir" "$T/pkg/com.bovinelabs.grid-pathfinding"
+assert_exists "hyphen: Runtime dir" "$T/pkg/com.bovinelabs.grid-pathfinding/Runtime"
+assert_exists "hyphen: Tests dir"   "$T/pkg/com.bovinelabs.grid-pathfinding/Tests"
 assert_no_placeholders "hyphen: no placeholders" "$T/pkg"
 
 # ═══════════════════════ SECTION 6: Build & Test ═════════════
