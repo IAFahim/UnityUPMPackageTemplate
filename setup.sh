@@ -148,6 +148,7 @@ echo ""
 # ── Rename folders ──────────────────────────────────────────────
 
 echo "  Setting up..."
+ls -R Dev~/ || true
 [ -d "__PACKAGE__.Runtime" ]          && mv "__PACKAGE__.Runtime"          "$PACKAGE_ID.Runtime"
 [ -d "__PACKAGE__.Tests" ]            && mv "__PACKAGE__.Tests"            "$PACKAGE_ID.Tests"
 [ -d "__PACKAGE__.Editor" ]           && mv "__PACKAGE__.Editor"           "$PACKAGE_ID.Editor"

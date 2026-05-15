@@ -17,6 +17,11 @@ rm -rf .git .gameci artifacts bin obj
 
 bash setup.sh com.selftest.unitypackage "Unity Package Self Test" "CI Bot" "SelfTest.UnityPackage"
 
+# GameCI packageMode: true expects a folder named 'Tests' at the package root
+if [ -d "com.selftest.unitypackage.Tests" ]; then
+    mv com.selftest.unitypackage.Tests Tests
+fi
+
 # Remove dev-only folders before Unity sees the package.
 rm -rf \
     Dev~ \
