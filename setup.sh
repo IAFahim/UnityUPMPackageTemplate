@@ -151,9 +151,9 @@ echo "  Setting up..."
 [ -d "__PACKAGE__.Runtime" ]          && mv "__PACKAGE__.Runtime"          "$PACKAGE_ID.Runtime"
 [ -d "__PACKAGE__.Tests" ]            && mv "__PACKAGE__.Tests"            "$PACKAGE_ID.Tests"
 [ -d "__PACKAGE__.Editor" ]           && mv "__PACKAGE__.Editor"           "$PACKAGE_ID.Editor"
-[ -d "src/__PACKAGE__" ]              && mv "src/__PACKAGE__"              "src/$PACKAGE_ID"
-[ -d "tests/__PACKAGE__.Tests" ]      && mv "tests/__PACKAGE__.Tests"      "tests/$PACKAGE_ID.Tests"
-[ -d "benchmarks/__PACKAGE__.Benchmarks" ] && mv "benchmarks/__PACKAGE__.Benchmarks" "benchmarks/$PACKAGE_ID.Benchmarks"
+[ -d "Dev~/src/__PACKAGE__" ]         && mv "Dev~/src/__PACKAGE__"         "Dev~/src/$PACKAGE_ID"
+[ -d "Dev~/tests/__PACKAGE__.Tests" ] && mv "Dev~/tests/__PACKAGE__.Tests" "Dev~/tests/$PACKAGE_ID.Tests"
+[ -d "Dev~/benchmarks/__PACKAGE__.Benchmarks" ] && mv "Dev~/benchmarks/__PACKAGE__.Benchmarks" "Dev~/benchmarks/$PACKAGE_ID.Benchmarks"
 [ -f "__PACKAGE__.slnx" ]             && mv "__PACKAGE__.slnx"             "$PACKAGE_ID.slnx"
 
 # ── Rename files ────────────────────────────────────────────────
@@ -202,8 +202,14 @@ done
 # ── Erase all traces ────────────────────────────────────────────
 
 chmod +x scripts/*.sh
-rm -f AGENTS.md install.sh
-# Keep .github/ — CI is essential
+
+# Remove template-only root files from generated packages.
+rm -f AGENTS.md install.sh CHANGELOG.md TODO_GOD_TIER_UNITY_PACKAGE_TEMPLATE.md
+
+# Remove template-only test scripts from generated packages.
+rm -f scripts/test-template.sh scripts/test-cli.sh
+
+# Keep .github/ because generated packages should still have CI.
 rm -- "$0"
 
 # Clean README

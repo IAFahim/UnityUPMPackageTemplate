@@ -60,12 +60,14 @@ check exists "scripts/smoke.sh"
 check exists "scripts/doctor.sh"
 check exists "scripts/validate-upm.sh"
 check exists "scripts/version.sh"
-check exists "scripts/test-template.sh"
+check missing "scripts/test-template.sh"
+check missing "scripts/test-cli.sh"
 check exists "com.selftest.verify.slnx"
 check missing "setup.sh"
 check missing "install.sh"
 check missing "AGENTS.md"
 check missing "CHANGELOG.md"
+check missing "TODO_GOD_TIER_UNITY_PACKAGE_TEMPLATE.md"
 
 # ── Verify no placeholders ─────────────────────────────────────
 
