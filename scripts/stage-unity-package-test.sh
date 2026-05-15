@@ -19,6 +19,7 @@ bash setup.sh com.selftest.unitypackage "Unity Package Self Test" "CI Bot" "Self
 
 # GameCI packageMode: true expects a folder named 'Tests' at the package root
 if [ -d "com.selftest.unitypackage.Tests" ]; then
+    echo "Renaming com.selftest.unitypackage.Tests to Tests"
     mv com.selftest.unitypackage.Tests Tests
 fi
 
@@ -38,6 +39,9 @@ rm -rf \
 
 mkdir -p "$ROOT/$(dirname "$OUT")"
 cp -R "$TMP/template" "$ROOT/$OUT"
+
+echo "Staged package content:"
+ls -la "$ROOT/$OUT"
 
 cd "$ROOT/$OUT"
 
