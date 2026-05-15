@@ -158,7 +158,7 @@ echo "  Setting up..."
 
 # ── Rename files ────────────────────────────────────────────────
 
-find . -name "__PACKAGE__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
+find . -type f -name "__PACKAGE__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
     dir=$(dirname "$f"); base=$(basename "$f")
     newname=$(echo "$base" | sed "s/__PACKAGE__/$PACKAGE_ID/g")
     if [ "$base" != "$newname" ]; then
@@ -189,7 +189,7 @@ find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*
 
 # ── Clean placeholders ──────────────────────────────────────────
 
-find . -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
+find . -type f -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
     dir=$(dirname "$f"); base=$(basename "$f")
     newname=$(echo "$base" | sed 's/__PLACEHOLDER__/Template/')
     if [ -e "$dir/$newname" ]; then

@@ -222,12 +222,12 @@ echo "  ${GREEN}►${RESET} Building structure..."
 [ -d "__PACKAGE__.Runtime" ] && mv "__PACKAGE__.Runtime" "$PACKAGE_ID.Runtime"
 [ -d "__PACKAGE__.Tests" ] && mv "__PACKAGE__.Tests" "$PACKAGE_ID.Tests"
 [ -d "__PACKAGE__.Editor" ] && mv "__PACKAGE__.Editor" "$PACKAGE_ID.Editor"
-[ -d "src/__PACKAGE__" ] && mv "src/__PACKAGE__" "src/$PACKAGE_ID"
-[ -d "tests/__PACKAGE__.Tests" ] && mv "tests/__PACKAGE__.Tests" "tests/$PACKAGE_ID.Tests"
-[ -d "benchmarks/__PACKAGE__.Benchmarks" ] && mv "benchmarks/__PACKAGE__.Benchmarks" "benchmarks/$PACKAGE_ID.Benchmarks"
+[ -d "Dev~/src/__PACKAGE__" ] && mv "Dev~/src/__PACKAGE__" "Dev~/src/$PACKAGE_ID"
+[ -d "Dev~/tests/__PACKAGE__.Tests" ] && mv "Dev~/tests/__PACKAGE__.Tests" "Dev~/tests/$PACKAGE_ID.Tests"
+[ -d "Dev~/benchmarks/__PACKAGE__.Benchmarks" ] && mv "Dev~/benchmarks/__PACKAGE__.Benchmarks" "Dev~/benchmarks/$PACKAGE_ID.Benchmarks"
 [ -f "__PACKAGE__.slnx" ] && mv "__PACKAGE__.slnx" "$PACKAGE_ID.slnx"
 
-find . -name "__PACKAGE__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
+find . -type f -name "__PACKAGE__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
     dir=$(dirname "$f"); base=$(basename "$f")
     newname=$(echo "$base" | sed "s/__PACKAGE__/$PACKAGE_ID/g")
     [ "$base" != "$newname" ] && mv "$f" "$dir/$newname"
@@ -249,7 +249,7 @@ find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*
     -e "s/__UNITY_MIN__/$S_UNITY/g" \
     {} +
 
-find . -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
+find . -type f -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
     dir=$(dirname "$f"); base=$(basename "$f")
     newname=$(echo "$base" | sed "s/__PLACEHOLDER__/Template/g")
     mv "$f" "$dir/$newname"
