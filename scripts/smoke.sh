@@ -18,11 +18,29 @@ echo "  ${GREEN}✓${RESET} dotnet restore"
 if ! dotnet build *.slnx -c Release --no-restore >/dev/null 2>&1; then echo "  ${RED}✗${RESET} Build failed"; exit 1; fi
 echo "  ${GREEN}✓${RESET} dotnet build"
 
-if ! dotnet test *.slnx -c Release --no-build --verbosity quiet >/dev/null 2>&1; then
+mkdir -p artifacts/coverage
+if ! dotnet test *.slnx -c Release --no-build \
+    --collect:"XPlat Code Coverage" \
+    --results-directory artifacts/coverage \
+    --verbosity quiet >artifacts/coverage/run.log 2>&1; then
     echo "  ${RED}✗${RESET} Tests failed"
     exit 1
 fi
 echo "  ${GREEN}✓${RESET} dotnet test"
+
+COVERAGE=$(python3 - <<'PY'
+import glob, xml.etree.ElementTree as ET, os
+files = glob.glob("artifacts/coverage/**/*.xml", recursive=True)
+if not files:
+    print("?")
+    exit()
+tree = ET.parse(files[0])
+cov = tree.find(".//coverage")
+pct = float(cov.get("line-rate","0")) * 100 if cov is not None else 0
+print(f"{pct:.0f}")
+PY
+)
+echo "  Coverage: $COVERAGE%"
 
 # ── API Diff ────────────────────────────────────────────────────
 

@@ -223,11 +223,15 @@ BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/bad
 OPENUPM_BADGE_URL="https://img.shields.io/npm/v/$PACKAGE_ID?label=openupm&registry_uri=https://package.openupm.com"
 DOCS_BADGE="https://img.shields.io/badge/docs-pages-blue"
 DOCS_URL="https://$GH_OWNER.github.io/$PACKAGE_ID"
+BADGE_LICENSE="https://img.shields.io/github/license/$GH_OWNER/$PACKAGE_ID"
+BADGE_UNITY="https://img.shields.io/badge/Unity-$UNITY_MIN%2B-black?logo=unity"
 
 cat > README.md <<README
 # $DISPLAY_NAME
 
 [![CI]($BADGE_URL)](https://github.com/$GH_OWNER/$PACKAGE_ID/actions)
+[![License]($BADGE_LICENSE)](LICENSE)
+[![Unity]($BADGE_UNITY)](https://unity.com)
 [![OpenUPM]($OPENUPM_BADGE_URL)](https://openupm.com/packages/$PACKAGE_ID/)
 [![Docs]($DOCS_BADGE)]($DOCS_URL)
 

@@ -19,6 +19,13 @@ TOTAL=$(find . -not -path './.git/*' -not -path '*/bin/*' -not -path '*/obj/*' \
 
 TOTAL_KB=$((TOTAL / 1024))
 
+COLOR="brightgreen"
+[ "$TOTAL_KB" -gt 200 ] && COLOR="yellow"
+[ "$TOTAL_KB" -gt "$MAX_KB" ] && COLOR="red"
+
+mkdir -p artifacts/badges
+echo "https://img.shields.io/badge/size-${TOTAL_KB}KB-${COLOR}" > artifacts/badges/size.txt
+
 # Per-category breakdown
 CS_KB=$(find . -name "*.cs" -not -path '*/bin/*' -not -path '*/obj/*' -type f -exec cat {} + 2>/dev/null | wc -c | awk '{printf "%.0f", $1/1024}')
 JSON_KB=$(find . -name "*.json" -not -path '*/bin/*' -not -path '*/obj/*' -type f -exec cat {} + 2>/dev/null | wc -c | awk '{printf "%.0f", $1/1024}')
