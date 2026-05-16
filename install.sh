@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 # ┌───────────────────────────────────────────────────────────────────┐
-# │                                                                   │
 # │   unity-package create                                            │
-# │                                                                   │
 # │   One command. Your Unity package. Done.                          │
-# │                                                                   │
-# │   bash <(curl -sL INSTALL_URL/install.sh)                         │
-# │   bash <(curl -sL INSTALL_URL/install.sh) my-folder               │
-# │                                                                   │
 # └───────────────────────────────────────────────────────────────────┘
 set -euo pipefail
 
@@ -16,7 +10,6 @@ FOLDER_NAME=""
 FORCE_YES=false
 MINIMAL=false
 
-# Parse arguments
 for arg in "$@"; do
     case "$arg" in
         --yes) FORCE_YES=true ;;
@@ -26,9 +19,7 @@ for arg in "$@"; do
     esac
 done
 
-BOLD=$'\033[1m' DIM=$'\033[2m' GREEN=$'\033[32m' CYAN=$'\033[36m' YELLOW=$'\033[33m' RED=$'\033[31m' RESET=$'\033[0m'
-
-# ── Helpers ─────────────────────────────────────────────────────
+BOLD=$'\033[1m' DIM=$'\033[2m' GREEN=$'\033[32m' CYAN=$'\033[36m' YELLOW=$'\033[33m' RESET=$'\033[0m'
 
 pascal() {
     echo "$1" | sed 's/[-_ ]\+/_/g' | awk -F'_' '{for(i=1;i<=NF;i++) printf "%s%s", toupper(substr($i,1,1)), substr($i,2)}'
@@ -77,19 +68,11 @@ detect_github_owner() {
 
 detect_author() {
     local name=$(git config --global user.name 2>/dev/null)
-    if [ -n "$name" ]; then
-        echo "$name"
-        return
-    fi
+    [ -n "$name" ] && echo "$name" && return
     local owner=$(detect_github_owner)
-    if [ -n "$owner" ]; then
-        echo "$owner"
-        return
-    fi
+    [ -n "$owner" ] && echo "$owner" && return
     echo ""
 }
-
-# ── Banner ──────────────────────────────────────────────────────
 
 echo ""
 echo "  ${BOLD}╔══════════════════════════════════════════════════════╗${RESET}"
@@ -98,13 +81,9 @@ echo "  ${BOLD}║   ${DIM}One command. Your package. Done.${RESET}${BOLD}      
 echo "  ${BOLD}╚══════════════════════════════════════════════════════╝${RESET}"
 echo ""
 
-# ── Smart defaults ──────────────────────────────────────────────
-
 DEFAULT_AUTHOR=$(detect_author)
 DEFAULT_UNITY=$(detect_unity_min)
 DEFAULT_GH_OWNER=$(detect_github_owner)
-
-# ── Folder name ─────────────────────────────────────────────────
 
 if [ -z "$FOLDER_NAME" ]; then
     if [ "$FORCE_YES" = true ]; then
@@ -123,10 +102,9 @@ if [ -z "$FOLDER_NAME" ]; then
     fi
 fi
 
-if [ -z "$FOLDER_NAME" ]; then echo "  Need a folder name." && exit 1; fi
-if [ -d "$FOLDER_NAME" ]; then echo "  '$FOLDER_NAME' already exists." && exit 1; fi
+[ -z "$FOLDER_NAME" ] && echo "  Need a folder name." && exit 1
+[ -d "$FOLDER_NAME" ] && echo "  '$FOLDER_NAME' already exists." && exit 1
 
-# Suggested ID
 SUGGESTED_ID=""
 OWNER_HINT=$(echo "$DEFAULT_GH_OWNER" | tr '[:upper:]' '[:lower:]' | tr -d ' ')
 if [[ "$FOLDER_NAME" =~ ^[a-z]+(\.[a-z0-9_-]+){2,}$ ]]; then
@@ -134,8 +112,6 @@ if [[ "$FOLDER_NAME" =~ ^[a-z]+(\.[a-z0-9_-]+){2,}$ ]]; then
 elif [ -n "$OWNER_HINT" ]; then
     SUGGESTED_ID="com.${OWNER_HINT}.$(echo "$FOLDER_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
 fi
-
-# ── Gather inputs ───────────────────────────────────────────────
 
 if [ "$FORCE_YES" = true ]; then
     PACKAGE_ID="${SUGGESTED_ID:-com.example.package}"
@@ -209,8 +185,6 @@ S_AUTHOR=$(escape_sed "$AUTHOR")
 S_YEAR=$(escape_sed "$YEAR")
 S_UNITY=$(escape_sed "$UNITY_MIN")
 
-# ── Clone & Build ───────────────────────────────────────────────
-
 echo ""
 echo "  ${GREEN}►${RESET} Cloning..."
 git clone --depth 1 "$TEMPLATE_REPO" "$FOLDER_NAME" 2>/dev/null
@@ -263,58 +237,72 @@ elif [ "$SAMPLES" = "2" ]; then
     python3 -c "import json; d=json.load(open('package.json')); d['samples']=[s for s in d['samples'] if 'QuickStart' in s['path']]; json.dump(d,open('package.json','w'),indent=2)" 2>/dev/null || true
 fi
 
-# ── Flatten for UPM ─────────────────────────────────────────────
+# ── Flatten for UPM (BovineLabs-style) ──────────────────────────
 
 echo "  ${GREEN}►${RESET} Flattening for UPM..."
 
-# Move package subfolders to root (Runtime/, Tests/, Editor/)
-for dir in "$PACKAGE_ID"/*/; do
-    [ -d "$dir" ] || continue
-    base=$(basename "$dir")
-    [ -d "$base" ] || mv "$dir" "$base"
-    [ -f "${dir%/}.meta" ] && mv "${dir%/}.meta" "$base.meta" 2>/dev/null || true
+# Move all subfolders from package root to repo root
+for subdir in "$PACKAGE_ID"/*/; do
+    [ -d "$subdir" ] || continue
+    base=$(basename "$subdir")
+    
+    if [ ! -e "$base" ]; then
+        mv "$subdir" "./$base"
+        [ -f "${subdir%/}.meta" ] && mv "${subdir%/}.meta" "./$base.meta"
+    else
+        # Merge: move each item that doesn't exist at root
+        for item in "$subdir"*; do
+            [ -e "$item" ] || continue
+            item_base=$(basename "$item")
+            [ ! -e "$item_base" ] && mv "$item" "./$item_base"
+        done
+        [ -f "${subdir%/}.meta" ] && rm -f "${subdir%/}.meta"
+    fi
 done
 
-# Move asmdef meta files
-for f in "$PACKAGE_ID"/*.asmdef; do
-    [ -f "$f" ] || continue
-    base=$(basename "$f")
-    [ -f "$base" ] || mv "$f" "$base"
-    [ -f "$f.meta" ] && mv "$f.meta" "$base.meta" 2>/dev/null || true
-done
-
-# Move cs files from package subfolder
+# Move files from package root to repo root
 for f in "$PACKAGE_ID"/*; do
-    [ -f "$f" ] || continue
+    [ -e "$f" ] || continue
     base=$(basename "$f")
-    [ -f "$base" ] || mv "$f" "$base"
-    [ -f "$f.meta" ] && mv "$f.meta" "$base.meta" 2>/dev/null || true
+    [ -d "$f" ] && continue
+    
+    if [ ! -e "$base" ]; then
+        mv "$f" "./$base"
+        [ -f "$f.meta" ] && mv "$f.meta" "./$base.meta"
+    fi
 done
 
-# Remove now-empty package subfolder
+# Remove empty package folder
 rm -rf "$PACKAGE_ID"
-rm -f "$PACKAGE_ID.meta"
 
-# ── Move dev-only files into Dev~ (Unity ignores ~-suffixed dirs) ──
+# ── Move dev-only into Dev~/ ─────────────────────────────────────
 
-mkdir -p "Dev~/infra"
-for f in scripts .github Directory.Build.props global.json "$PACKAGE_ID.slnx" .editorconfig TODO.md artifacts; do
-    [ -e "$f" ] && mv "$f" "Dev~/infra/"
+mkdir -p Dev~/infra
+
+for f in scripts .github global.json "$PACKAGE_ID.slnx" .editorconfig TODO.md artifacts; do
+    [ -e "$f" ] && mv "$f" Dev~/infra/
 done
 
-# ── Cleanup ─────────────────────────────────────────────────────
+# Directory.Build.props goes to Dev~/src/ (dotnet searches ancestor dirs)
+[ -e "Directory.Build.props" ] && mv "Directory.Build.props" Dev~/src/
+
+# ── Clean up template artifacts ──────────────────────────────────
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
-rm -f setup.sh install.sh AGENTS.md CHANGELOG.md TODO-FEATURES.md
+rm -f setup.sh install.sh AGENTS.md CHANGELOG.md TODO-FEATURES.md 2>/dev/null || true
 rm -f Dev~/infra/scripts/test-template.sh Dev~/infra/scripts/test-cli.sh 2>/dev/null || true
 chmod +x Dev~/infra/scripts/*.sh 2>/dev/null || true
 
 if [ "$MINIMAL" = true ]; then
-    rm -f .github/workflows/unity-package-test.yml .github/workflows/unity-activation.yml .github/workflows/release.yml .github/workflows/ai-context.yml 2>/dev/null || true
+    rm -f Dev~/infra/.github/workflows/unity-package-test.yml Dev~/infra/.github/workflows/unity-activation.yml Dev~/infra/.github/workflows/release.yml Dev~/infra/.github/workflows/ai-context.yml 2>/dev/null || true
     rm -rf Samples~ Documentation~ Skills~ Dev~/benchmarks Dev~/tools Tools~ SourceGenerator~ Plugins~
 fi
 
-# Clean README
+# Remove ALL ~.meta files (Unity ignores ~ folders, orphan meta causes errors)
+find . -name "*~.meta" -delete
+
+# ── Generate clean README ────────────────────────────────────────
+
 BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"
 BADGE_LICENSE="https://img.shields.io/github/license/$GH_OWNER/$PACKAGE_ID"
 BADGE_UNITY="https://img.shields.io/badge/Unity-2022.3%2B-black?logo=unity"
@@ -348,12 +336,11 @@ Or Unity → Package Manager → Add from git URL.
 
 | What | Where |
 |------|-------|
-| Runtime types | \`$PACKAGE_ID/Runtime/\` |
-| Tests | \`$PACKAGE_ID/Tests/\` |
-| Editor code | \`$PACKAGE_ID/Editor/\` |
+| Runtime types | \`Runtime/\` |
+| Tests | \`Tests/\` |
+| Editor code | \`Editor/\` |
 | Samples | \`Samples~/\` |
-| Source generators | \`SourceGenerator~/\` |
-| Runtime resources | \`Plugins~/\` |
+| Dev tools | \`Dev~/\` |
 
 Write your code in Runtime/. Tests in Tests/. Both Unity and dotnet compile the same files.
 
@@ -362,33 +349,33 @@ Write your code in Runtime/. Tests in Tests/. Both Unity and dotnet compile the 
 \`\`\`bash
 dotnet restore
 dotnet test -c Release
-bash scripts/smoke.sh
+bash Dev~/infra/scripts/smoke.sh
 \`\`\`
 
 ## Scripts
 
 | Command | What it does |
 |---------|-------------|
-| \`bash scripts/smoke.sh\` | Build + test + validate |
-| \`bash scripts/doctor.sh\` | Full diagnostic (28+ checks) |
-| \`bash scripts/version.sh 0.2.0\` | Bump version + changelog |
-| \`bash scripts/pre-release.sh 0.2.0\` | Pre-release checklist |
+| \`bash Dev~/infra/scripts/smoke.sh\` | Build + test + validate |
+| \`bash Dev~/infra/scripts/doctor.sh\` | Full diagnostic (28+ checks) |
+| \`bash Dev~/infra/scripts/version.sh 0.2.0\` | Bump version + changelog |
+| \`bash Dev~/infra/scripts/pre-release.sh 0.2.0\` | Pre-release checklist |
 
 ## Release
 
 \`\`\`bash
-bash scripts/version.sh 0.2.0           # bump version + changelog
-bash scripts/pre-release.sh 0.2.0       # verify everything is ready
-git tag v0.2.0 && git push --tags       # trigger release CI
+bash Dev~/infra/scripts/version.sh 0.2.0
+bash Dev~/infra/scripts/pre-release.sh 0.2.0
+git tag v0.2.0 && git push --tags
 \`\`\`
 
 MIT © $YEAR $AUTHOR
 README
 
-
 # ── Finalize ────────────────────────────────────────────────────
 
-echo "  ${GREEN}►${RESET} Initializing git..."
+echo "  ${GREEN}►${RESET} Initializing
+git..."
 git init >/dev/null 2>&1
 git add -A >/dev/null 2>&1
 git commit -m "init" >/dev/null 2>&1 || true
@@ -401,6 +388,6 @@ echo "  ${GREEN}━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "  ${BOLD}Next:${RESET}"
 echo "  1. Push to GitHub: ${DIM}gh repo create $GH_OWNER/$PACKAGE_ID --public --source=. --push${RESET}"
-echo "  2. Setup secrets:  ${DIM}./scripts/setup-secrets.sh${RESET}"
+echo "  2. Setup secrets:  ${DIM}./Dev~/infra/scripts/setup-secrets.sh${RESET}"
 echo "  3. Build & Test:   ${DIM}dotnet test -c Release${RESET}"
 echo ""
