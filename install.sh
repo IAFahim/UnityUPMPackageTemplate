@@ -24,7 +24,7 @@ package_to_namespace() {
         for(i=2;i<=NF;i++) {
             split($i, parts, /[-_]/)
             for(j=1;j<=length(parts);j++) {
-                printf "%s%s", toupper(substr(parts[j],1,1)), substr($i,2)
+                printf "%s%s", toupper(substr(parts[j],1,1)), substr(parts[j],2)
             }
             if(i<NF) printf "."
         }
