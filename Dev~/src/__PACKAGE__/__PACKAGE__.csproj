@@ -8,13 +8,8 @@
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
-  <!--
-    Unity.Mathematics for CI compilation only.
-    PrivateAssets="All" = compile reference, never copied to output.
-    Unity resolves this via UPM com.unity.mathematics at runtime.
-  -->
   <ItemGroup>
-    <PackageReference Include="UnityMathematics" Version="$(UnityMathematicsVersion)" PrivateAssets="All" />
+    <PackageReference Include="UnityMathematics.NoDeps" Version="$(UnityMathematicsVersion)" PrivateAssets="All" />
   </ItemGroup>
 
   <!-- Source lives in the Unity package folder. This csproj just points at it. -->

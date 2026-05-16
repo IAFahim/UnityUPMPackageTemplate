@@ -5,7 +5,4 @@
   <Folder Name="/tests/">
     <Project Path="Dev~/tests/__PACKAGE__.Tests/__PACKAGE__.Tests.csproj" />
   </Folder>
-  <Folder Name="/benchmarks/">
-    <Project Path="Dev~/benchmarks/__PACKAGE__.Benchmarks/__PACKAGE__.Benchmarks.csproj" />
-  </Folder>
 </Solution>

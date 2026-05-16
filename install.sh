@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
-# ┌───────────────────────────────────────────────────────────────────┐
-# │   unity-package create                                            │
-# │   One command. Your Unity package. Done.                          │
-# └───────────────────────────────────────────────────────────────────┘
 set -euo pipefail
 
 TEMPLATE_REPO="https://github.com/IAFahim/UnityUPMPackageTemplate.git"
 FOLDER_NAME=""
 FORCE_YES=false
-MINIMAL=false
 
 for arg in "$@"; do
     case "$arg" in
         --yes) FORCE_YES=true ;;
-        --minimal) MINIMAL=true ;;
         -*) echo "Unknown option: $arg"; exit 1 ;;
         *) FOLDER_NAME="$arg" ;;
     esac
@@ -30,7 +24,7 @@ package_to_namespace() {
         for(i=2;i<=NF;i++) {
             split($i, parts, /[-_]/)
             for(j=1;j<=length(parts);j++) {
-                printf "%s%s", toupper(substr(parts[j],1,1)), substr(parts[j],2)
+                printf "%s%s", toupper(substr(parts[j],1,1)), substr($i,2)
             }
             if(i<NF) printf "."
         }
@@ -81,7 +75,7 @@ detect_dotnet_version() {
 echo ""
 echo "  ${BOLD}╔══════════════════════════════════════════════════════╗${RESET}"
 echo "  ${BOLD}║   ${CYAN}Unity UPM Package Creator${RESET}${BOLD}                          ║${RESET}"
-echo "  ${BOLD}║   ${DIM}One command. Your package. Done.${RESET}${BOLD}                   ║${RESET}"
+echo "  ${BOLD}║   ${DIM}Build outside Unity. Ship as Unity package.${RESET}${BOLD}       ║${RESET}"
 echo "  ${BOLD}╚══════════════════════════════════════════════════════╝${RESET}"
 echo ""
 
@@ -125,7 +119,6 @@ if [ "$FORCE_YES" = true ]; then
     NAMESPACE=$(package_to_namespace "$PACKAGE_ID")
     GH_OWNER="${DEFAULT_GH_OWNER:-example}"
     UNITY_MIN="$DEFAULT_UNITY"
-    SAMPLES="3"
 else
     echo ""
     echo "  ${DIM}── Identity ─────────────────────────────────────────${RESET}"
@@ -135,7 +128,7 @@ else
         read -rp "  ${BOLD}Package ID${RESET} [$SUGGESTED_ID]: " PACKAGE_ID
         PACKAGE_ID="${PACKAGE_ID:-$SUGGESTED_ID}"
     else
-        read -rp "  ${BOLD}Package ID${RESET} (e.g. com.bovinelabs.grid.pathfinding): " PACKAGE_ID
+        read -rp "  ${BOLD}Package ID${RESET} (e.g. com.bovinelabs.grid): " PACKAGE_ID
     fi
 
     if ! validate_package_id "$PACKAGE_ID"; then
@@ -148,8 +141,8 @@ else
     read -rp "  ${BOLD}Display name${RESET} [$DERIVED_DISPLAY]: " DISPLAY_NAME
     DISPLAY_NAME="${DISPLAY_NAME:-$DERIVED_DISPLAY}"
 
-    read -rp "  ${BOLD}Author${RESET} [${DEFAULT_AUTHOR:-Vex Interactive}]: " AUTHOR
-    AUTHOR="${AUTHOR:-${DEFAULT_AUTHOR:-Vex Interactive}}"
+    read -rp "  ${BOLD}Author${RESET} [${DEFAULT_AUTHOR:-IAFahim}]: " AUTHOR
+    AUTHOR="${AUTHOR:-${DEFAULT_AUTHOR:-IAFahim}}"
 
     read -rp "  ${BOLD}C# namespace${RESET} [$DERIVED_NAMESPACE]: " NAMESPACE
     NAMESPACE="${NAMESPACE:-$DERIVED_NAMESPACE}"
@@ -159,14 +152,6 @@ else
 
     read -rp "  ${BOLD}Unity minimum${RESET} [$DEFAULT_UNITY]: " UNITY_MIN
     UNITY_MIN="${UNITY_MIN:-$DEFAULT_UNITY}"
-
-    echo ""
-    echo "  ${BOLD}Create samples?${RESET}"
-    echo "  [1] None"
-    echo "  [2] QuickStart scene"
-    echo "  [3] QuickStart + UI Toolkit demo"
-    read -rp "  Selection [3]: " SAMPLES
-    SAMPLES="${SAMPLES:-3}"
 
     echo ""
     echo "  ${DIM}──────────────────────────────────────────────────────${RESET}"
@@ -202,7 +187,6 @@ echo "  ${GREEN}►${RESET} Building structure..."
 [ -d "__PACKAGE__" ] && mv "__PACKAGE__" "$PACKAGE_ID"
 [ -d "Dev~/src/__PACKAGE__" ] && mv "Dev~/src/__PACKAGE__" "Dev~/src/$PACKAGE_ID"
 [ -d "Dev~/tests/__PACKAGE__.Tests" ] && mv "Dev~/tests/__PACKAGE__.Tests" "Dev~/tests/$PACKAGE_ID.Tests"
-[ -d "Dev~/benchmarks/__PACKAGE__.Benchmarks" ] && mv "Dev~/benchmarks/__PACKAGE__.Benchmarks" "Dev~/benchmarks/$PACKAGE_ID.Benchmarks"
 [ -f "__PACKAGE__.slnx" ] && mv "__PACKAGE__.slnx" "$PACKAGE_ID.slnx"
 
 find . -type f -name "__PACKAGE__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
@@ -214,7 +198,7 @@ done
 echo "  ${GREEN}►${RESET} Personalizing..."
 
 find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*.asmdef" \
-    -o -name "*.json" -o -name "*.yml" -o -name "*.md" -o -name "*.sh" -o -name "*.ps1" \
+    -o -name "*.json" -o -name "*.yml" -o -name "*.md" -o -name "*.sh" \
     -o -name "LICENSE" \) \
     -not -path "*/bin/*" -not -path "*/obj/*" -not -path "*/.git/*" \
     -exec sed -i \
@@ -234,30 +218,18 @@ find . -type f -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*
     mv "$f" "$dir/$newname"
 done
 
-# ── Samples ─────────────────────────────────────────────────────
-
-if [ "$SAMPLES" = "1" ]; then
-    rm -rf Samples~
-    python3 -c "import json; d=json.load(open('package.json')); d.pop('samples',None); json.dump(d,open('package.json','w'),indent=2)" 2>/dev/null || true
-elif [ "$SAMPLES" = "2" ]; then
-    rm -rf Samples~/UIToolkitDemo
-    python3 -c "import json; d=json.load(open('package.json')); d['samples']=[s for s in d['samples'] if 'QuickStart' in s['path']]; json.dump(d,open('package.json','w'),indent=2)" 2>/dev/null || true
-fi
-
 # ── Flatten for UPM (BovineLabs-style) ──────────────────────────
 
 echo "  ${GREEN}►${RESET} Flattening for UPM..."
 
-# Move all subfolders from package root to repo root
 for subdir in "$PACKAGE_ID"/*/; do
     [ -d "$subdir" ] || continue
     base=$(basename "$subdir")
-    
+
     if [ ! -e "$base" ]; then
         mv "$subdir" "./$base"
         [ -f "${subdir%/}.meta" ] && mv "${subdir%/}.meta" "./$base.meta"
     else
-        # Merge: move each item that doesn't exist at root
         for item in "$subdir"*; do
             [ -e "$item" ] || continue
             item_base=$(basename "$item")
@@ -267,62 +239,46 @@ for subdir in "$PACKAGE_ID"/*/; do
     fi
 done
 
-# Move files from package root to repo root
 for f in "$PACKAGE_ID"/*; do
     [ -e "$f" ] || continue
     base=$(basename "$f")
     [ -d "$f" ] && continue
-    
+
     if [ ! -e "$base" ]; then
         mv "$f" "./$base"
         [ -f "$f.meta" ] && mv "$f.meta" "./$base.meta"
     fi
 done
 
-# Remove empty package folder
 rm -rf "$PACKAGE_ID"
 
-# ── Move dev-only into Dev~/ ─────────────────────────────────────
+# ── Move dev-only into Dev~/infra/ ──────────────────────────────
 
 mkdir -p Dev~/infra
 
-for f in scripts .github global.json "$PACKAGE_ID.slnx" .editorconfig TODO.md artifacts; do
+for f in "$PACKAGE_ID.slnx"; do
     [ -e "$f" ] && mv "$f" Dev~/infra/
 done
 
-# Directory.Build.props goes to Dev~/src/ and Dev~/tests/ (dotnet searches ancestor dirs)
+# Directory.Build.props → Dev~/src/ and Dev~/tests/
 [ -e "Directory.Build.props" ] && mv "Directory.Build.props" Dev~/src/
 [ -e "Dev~/src/Directory.Build.props" ] && cp "Dev~/src/Directory.Build.props" Dev~/tests/
-[ -e "Dev~/src/Directory.Build.props" ] && cp "Dev~/src/Directory.Build.props" Dev~/benchmarks/
 
-# ── Clean up template artifacts ──────────────────────────────────
+# ── Clean up template artifacts ─────────────────────────────────
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
-rm -f setup.sh install.sh AGENTS.md CHANGELOG.md TODO-FEATURES.md 2>/dev/null || true
+rm -f setup.sh install.sh AGENTS.md CHANGELOG.md 2>/dev/null || true
 rm -f Dev~/infra/scripts/test-template.sh Dev~/infra/scripts/test-cli.sh 2>/dev/null || true
-chmod +x Dev~/infra/scripts/*.sh 2>/dev/null || true
 
-if [ "$MINIMAL" = true ]; then
-    rm -f Dev~/infra/.github/workflows/unity-package-test.yml Dev~/infra/.github/workflows/unity-activation.yml Dev~/infra/.github/workflows/release.yml Dev~/infra/.github/workflows/ai-context.yml 2>/dev/null || true
-    rm -rf Samples~ Documentation~ Skills~ Dev~/benchmarks Dev~/tools Tools~ SourceGenerator~ Plugins~
-fi
-
-# Remove ALL ~.meta files (Unity ignores ~ folders, orphan meta causes errors)
 find . -name "*~.meta" -delete
 
 # ── Generate clean README ────────────────────────────────────────
 
-BADGE_URL="https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg"
-BADGE_LICENSE="https://img.shields.io/github/license/$GH_OWNER/$PACKAGE_ID"
-BADGE_UNITY="https://img.shields.io/badge/Unity-2022.3%2B-black?logo=unity"
 cat > README.md <<README
 # $DISPLAY_NAME
 
-[![CI]($BADGE_URL)](https://github.com/$GH_OWNER/$PACKAGE_ID/actions)
-[![License]($BADGE_LICENSE)](LICENSE)
-[![Unity]($BADGE_UNITY)](https://unity.com)
-
-> $DISPLAY_NAME
+[![CI](https://github.com/$GH_OWNER/$PACKAGE_ID/actions/workflows/ci.yml/badge.svg)](https://github.com/$GH_OWNER/$PACKAGE_ID/actions)
+[![License](https://img.shields.io/github/license/$GH_OWNER/$PACKAGE_ID)](LICENSE)
 
 **Build outside Unity. Ship as Unity package.**
 
@@ -341,41 +297,24 @@ Add to \`Packages/manifest.json\`:
 
 Or Unity → Package Manager → Add from git URL.
 
-## Where code lives
+## How it works
 
-| What | Where |
-|------|-------|
-| Runtime types | \`Runtime/\` |
-| Tests | \`Tests/\` |
-| Editor code | \`Editor/\` |
-| Samples | \`Samples~/\` |
-| Dev tools | \`Dev~/\` |
+\`\`\`
+Runtime/*.cs          ← your code (uses Unity.Mathematics types)
+  │
+  ├─ dotnet build     ← UnityMathematics.NoDeps NuGet
+  │   dotnet test     ← same NuGet, no Unity needed
+  │
+  └─ Unity            ← com.unity.mathematics UPM via package.json
+\`\`\`
 
-Write your code in Runtime/. Tests in Tests/. Both Unity and dotnet compile the same files.
+No DLLs. No Unity project needed to develop. Same source compiles in both.
 
 ## Dev
 
 \`\`\`bash
 dotnet restore
 dotnet test -c Release
-bash Dev~/infra/scripts/smoke.sh
-\`\`\`
-
-## Scripts
-
-| Command | What it does |
-|---------|-------------|
-| \`bash Dev~/infra/scripts/smoke.sh\` | Build + test + validate |
-| \`bash Dev~/infra/scripts/doctor.sh\` | Full diagnostic (28+ checks) |
-| \`bash Dev~/infra/scripts/version.sh 0.2.0\` | Bump version + changelog |
-| \`bash Dev~/infra/scripts/pre-release.sh 0.2.0\` | Pre-release checklist |
-
-## Release
-
-\`\`\`bash
-bash Dev~/infra/scripts/version.sh 0.2.0
-bash Dev~/infra/scripts/pre-release.sh 0.2.0
-git tag v0.2.0 && git push --tags
 \`\`\`
 
 MIT © $YEAR $AUTHOR
@@ -383,8 +322,7 @@ README
 
 # ── Finalize ────────────────────────────────────────────────────
 
-echo "  ${GREEN}►${RESET} Initializing
-git..."
+echo "  ${GREEN}►${RESET} Initializing git..."
 git init >/dev/null 2>&1
 git add -A >/dev/null 2>&1
 git commit -m "init" >/dev/null 2>&1 || true
@@ -396,7 +334,6 @@ echo "  ${BOLD}  $DISPLAY_NAME is ready.${RESET}"
 echo "  ${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 echo "  ${BOLD}Next:${RESET}"
-echo "  1. Push to GitHub: ${DIM}gh repo create $GH_OWNER/$PACKAGE_ID --public --source=. --push${RESET}"
-echo "  2. Setup secrets:  ${DIM}./Dev~/infra/scripts/setup-secrets.sh${RESET}"
-echo "  3. Build & Test:   ${DIM}dotnet test -c Release${RESET}"
+echo "  1. Push:  ${DIM}gh repo create $GH_OWNER/$PACKAGE_ID --public --source=. --push${RESET}"
+echo "  2. Build: ${DIM}dotnet test -c Release${RESET}"
 echo ""

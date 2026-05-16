@@ -11,17 +11,5 @@
   "license": "MIT",
   "author": {
     "name": "__AUTHOR__"
-  },
-  "samples": [
-    {
-      "displayName": "Quick Start",
-      "description": "Minimal usage example of __DISPLAY__",
-      "path": "Samples~/QuickStart"
-    },
-    {
-      "displayName": "UI Toolkit Demo",
-      "description": "Editor/UI Toolkit example for __DISPLAY__",
-      "path": "Samples~/UIToolkitDemo"
-    }
-  ]
+  }
 }
