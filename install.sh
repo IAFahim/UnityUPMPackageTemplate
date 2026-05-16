@@ -74,6 +74,10 @@ detect_author() {
     echo ""
 }
 
+detect_dotnet_version() {
+    dotnet --version 2>/dev/null | awk -F. '{print $1".0"}' || echo "net10.0"
+}
+
 echo ""
 echo "  ${BOLD}╔══════════════════════════════════════════════════════╗${RESET}"
 echo "  ${BOLD}║   ${CYAN}Unity UPM Package Creator${RESET}${BOLD}                          ║${RESET}"
@@ -84,6 +88,7 @@ echo ""
 DEFAULT_AUTHOR=$(detect_author)
 DEFAULT_UNITY=$(detect_unity_min)
 DEFAULT_GH_OWNER=$(detect_github_owner)
+DEFAULT_DOTNET=$(detect_dotnet_version)
 
 if [ -z "$FOLDER_NAME" ]; then
     if [ "$FORCE_YES" = true ]; then
@@ -184,6 +189,7 @@ S_DISPLAY=$(escape_sed "$DISPLAY_NAME")
 S_AUTHOR=$(escape_sed "$AUTHOR")
 S_YEAR=$(escape_sed "$YEAR")
 S_UNITY=$(escape_sed "$UNITY_MIN")
+S_DOTNET=$(escape_sed "$DEFAULT_DOTNET")
 
 echo ""
 echo "  ${GREEN}►${RESET} Cloning..."
@@ -219,6 +225,7 @@ find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.slnx" -o -name "*
     -e "s/__AUTHOR__/$S_AUTHOR/g" \
     -e "s/__YEAR__/$S_YEAR/g" \
     -e "s/__UNITY_MIN__/$S_UNITY/g" \
+    -e "s/__TEST_NET__/$S_DOTNET/g" \
     {} +
 
 find . -type f -name "__PLACEHOLDER__*" -not -path "*/bin/*" -not -path "*/obj/*" | while read -r f; do
@@ -283,8 +290,10 @@ for f in scripts .github global.json "$PACKAGE_ID.slnx" .editorconfig TODO.md ar
     [ -e "$f" ] && mv "$f" Dev~/infra/
 done
 
-# Directory.Build.props goes to Dev~/src/ (dotnet searches ancestor dirs)
+# Directory.Build.props goes to Dev~/src/ and Dev~/tests/ (dotnet searches ancestor dirs)
 [ -e "Directory.Build.props" ] && mv "Directory.Build.props" Dev~/src/
+[ -e "Dev~/src/Directory.Build.props" ] && cp "Dev~/src/Directory.Build.props" Dev~/tests/
+[ -e "Dev~/src/Directory.Build.props" ] && cp "Dev~/src/Directory.Build.props" Dev~/benchmarks/
 
 # ── Clean up template artifacts ──────────────────────────────────
 

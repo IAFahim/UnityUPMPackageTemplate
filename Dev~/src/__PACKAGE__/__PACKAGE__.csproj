@@ -19,8 +19,8 @@
 
   <!-- Source lives in the Unity package folder. This csproj just points at it. -->
   <ItemGroup>
-    <Compile Include="../../../__PACKAGE__/Runtime/**/*.cs" />
-    <Compile Remove="../../../__PACKAGE__/Runtime/**/bin/**/*.cs" />
-    <Compile Remove="../../../__PACKAGE__/Runtime/**/obj/**/*.cs" />
+    <Compile Include="../../../Runtime/**/*.cs" />
+    <Compile Remove="../../../Runtime/**/bin/**/*.cs" />
+    <Compile Remove="../../../Runtime/**/obj/**/*.cs" />
   </ItemGroup>
 </Project>
