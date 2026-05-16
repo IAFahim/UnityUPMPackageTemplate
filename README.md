@@ -8,10 +8,10 @@ A batteries-included template that scaffolds a complete Unity UPM package with C
 
 ```bash
 # Option A: One-liner (creates a new folder)
-bash <(curl -sL https://raw.githubusercontent.com/__AUTHOR__/UnityUPMPackageTemplate/main/install.sh) my-package
+bash <(curl -sL https://raw.githubusercontent.com/IAFahim/UnityUPMPackageTemplate/main/install.sh) my-package
 
 # Option B: Clone and run locally
-git clone https://github.com/__AUTHOR__/UnityUPMPackageTemplate.git my-package
+git clone https://github.com/IAFahim/UnityUPMPackageTemplate.git my-package
 cd my-package && ./setup.sh
 ```
 
@@ -158,7 +158,7 @@ Unity:
 ### Interactive (recommended)
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/__AUTHOR__/UnityUPMPackageTemplate/main/install.sh)
+bash <(curl -sL https://raw.githubusercontent.com/IAFahim/UnityUPMPackageTemplate/main/install.sh)
 ```
 
 Asks 7 questions with smart auto-detected defaults:
