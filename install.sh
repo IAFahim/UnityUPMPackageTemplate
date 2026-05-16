@@ -11,7 +11,7 @@
 # └───────────────────────────────────────────────────────────────────┘
 set -euo pipefail
 
-TEMPLATE_REPO="https://github.com/__AUTHOR__/UnityUPMPackageTemplate.git"
+TEMPLATE_REPO="https://github.com/UnityUPMPackageTemplate.git"
 FOLDER_NAME=""
 FORCE_YES=false
 MINIMAL=false
