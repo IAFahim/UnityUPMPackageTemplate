@@ -251,6 +251,7 @@ for f in "$PACKAGE_ID"/*; do
 done
 
 rm -rf "$PACKAGE_ID"
+rm -f "$PACKAGE_ID.meta"
 
 # ── Move dev-only into Dev~/infra/ ──────────────────────────────
 
