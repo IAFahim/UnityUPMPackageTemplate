@@ -263,15 +263,54 @@ elif [ "$SAMPLES" = "2" ]; then
     python3 -c "import json; d=json.load(open('package.json')); d['samples']=[s for s in d['samples'] if 'QuickStart' in s['path']]; json.dump(d,open('package.json','w'),indent=2)" 2>/dev/null || true
 fi
 
+# ── Flatten for UPM ─────────────────────────────────────────────
+
+echo "  ${GREEN}►${RESET} Flattening for UPM..."
+
+# Move package subfolders to root (Runtime/, Tests/, Editor/)
+for dir in "$PACKAGE_ID"/*/; do
+    [ -d "$dir" ] || continue
+    base=$(basename "$dir")
+    [ -d "$base" ] || mv "$dir" "$base"
+    [ -f "${dir%/}.meta" ] && mv "${dir%/}.meta" "$base.meta" 2>/dev/null || true
+done
+
+# Move asmdef meta files
+for f in "$PACKAGE_ID"/*.asmdef; do
+    [ -f "$f" ] || continue
+    base=$(basename "$f")
+    [ -f "$base" ] || mv "$f" "$base"
+    [ -f "$f.meta" ] && mv "$f.meta" "$base.meta" 2>/dev/null || true
+done
+
+# Move cs files from package subfolder
+for f in "$PACKAGE_ID"/*; do
+    [ -f "$f" ] || continue
+    base=$(basename "$f")
+    [ -f "$base" ] || mv "$f" "$base"
+    [ -f "$f.meta" ] && mv "$f.meta" "$base.meta" 2>/dev/null || true
+done
+
+# Remove now-empty package subfolder
+rm -rf "$PACKAGE_ID"
+rm -f "$PACKAGE_ID.meta"
+
+# ── Move dev-only files into Dev~ (Unity ignores ~-suffixed dirs) ──
+
+mkdir -p "Dev~/infra"
+for f in scripts .github Directory.Build.props global.json "$PACKAGE_ID.slnx" .editorconfig TODO.md artifacts; do
+    [ -e "$f" ] && mv "$f" "Dev~/infra/"
+done
+
 # ── Cleanup ─────────────────────────────────────────────────────
 
 echo "  ${GREEN}►${RESET} Cleaning up..."
 rm -f setup.sh install.sh AGENTS.md CHANGELOG.md TODO-FEATURES.md
-rm -f scripts/test-template.sh scripts/test-cli.sh
-chmod +x scripts/*.sh
+rm -f Dev~/infra/scripts/test-template.sh Dev~/infra/scripts/test-cli.sh 2>/dev/null || true
+chmod +x Dev~/infra/scripts/*.sh 2>/dev/null || true
 
 if [ "$MINIMAL" = true ]; then
-    rm -f .github/workflows/unity-package-test.yml .github/workflows/unity-activation.yml .github/workflows/release.yml .github/workflows/ai-context.yml
+    rm -f .github/workflows/unity-package-test.yml .github/workflows/unity-activation.yml .github/workflows/release.yml .github/workflows/ai-context.yml 2>/dev/null || true
     rm -rf Samples~ Documentation~ Skills~ Dev~/benchmarks Dev~/tools Tools~ SourceGenerator~ Plugins~
 fi
 
